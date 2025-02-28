@@ -1,0 +1,5 @@
+"Your one stop shop for hermetic c/c++ toolchains in Bazel!"
+module(name = "toolchains_cc")
+
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "platforms", version = "0.0.11")
