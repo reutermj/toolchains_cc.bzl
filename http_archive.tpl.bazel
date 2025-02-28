@@ -1,0 +1,5 @@
+http_archive(
+    name = "{type}-{version}-{os}-{arch}",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/{type}-{version}/{type}-{version}-{os}-{arch}.tar.xz",
+    sha256 = "{sha}",
+)
