@@ -19,7 +19,6 @@ toolchain(
     name = "host_toolchain",
     toolchain = ":host_cc_toolchain",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-    visibility = ["//visibility:public"],
 )
 
 cc_tool_map(
@@ -67,6 +66,9 @@ cc_tool(
     name = "link_actions",
     src = select({
         ":clang": "//clang:link_actions",
+    }),
+    data = select({
+        ":clang": ["//clang:link_data"],
     }),
 )
 

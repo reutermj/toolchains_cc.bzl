@@ -13,9 +13,12 @@ actions = [
     "c_compile",
     "cpp_compile_actions",
     "link_actions",
+    "link_data",
     "objcopy_embed_data",
     "strip",
 ]
+
+visibility = "package(default_visibility = [\"//:__subpackages__\"])\n\n"
 
 # ===============
 # || Templates ||
@@ -106,6 +109,16 @@ def generate_root_build():
 # =========================
 # || //<toolchain>/BUILD ||
 # =========================
+def is_newer(version, latest):
+    version = version.split('.')
+    latest = latest.split('.')
+    for v, l in zip(version, latest):
+        if int(v) > int(l):
+            return True
+        elif int(v) < int(l):
+            return False
+    return False
+
 def generate_tool_build():
     toolchains = get_toolchains()
 
@@ -116,16 +129,23 @@ def generate_tool_build():
         version = toolchain[1]
 
         if name not in versions_lookup:
-            versions_lookup[name] = set()
+            versions_lookup[name] = {
+                "versions": set(),
+                "latest": "0.0.0"
+            }
 
-        versions_lookup[name].add(version)
+        versions_lookup[name]["versions"].add(version)
+        if is_newer(version, versions_lookup[name]["latest"]):
+            versions_lookup[name]["latest"] = version
     
     # write out the aliases that picks out the version specified by the --@toolchains_cc//:version config
-    aliases = ""
+    aliases = visibility
     for action in actions:
-        for name, versions in versions_lookup.items():
+        for name, versions_latest in versions_lookup.items():
+            versions = versions_latest["versions"]
+            latest = versions_latest["latest"]
             os.makedirs(name, exist_ok=True)
-            conditions = ""
+            conditions = f"        \"//:latest\": \"//{name}/{latest}:{action}\",\n"
             for version in versions:
                 conditions += f"        \"//:{version}\": \"//{name}/{version}:{action}\",\n"
             
@@ -165,7 +185,7 @@ def generate_tool_version_build():
         for version, targets in version_to_os_arch.items():
             os.makedirs(f"{name}/{version}", exist_ok=True)
 
-            aliases = ""
+            aliases = visibility
             for action in actions:
                 conditions = ""
                 for (target_os, arch) in targets:

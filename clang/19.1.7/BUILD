@@ -1,3 +1,5 @@
+package(default_visibility = ["//:__subpackages__"])
+
 alias(
     name = "ar_actions",
     actual = select({
@@ -26,6 +28,12 @@ alias(
     name = "link_actions",
     actual = select({
         "//constraint:linux_x86_64": "@clang-19.1.7-linux-x86_64//:link_actions",
+    })
+)
+alias(
+    name = "link_data",
+    actual = select({
+        "//constraint:linux_x86_64": "@clang-19.1.7-linux-x86_64//:link_data",
     })
 )
 alias(

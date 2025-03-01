@@ -14,5 +14,5 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 http_archive(
     name = "clang-19.1.7-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/clang-19.1.7/clang-19.1.7-linux-x86_64.tar.xz",
-    sha256 = "589c8c93ac6df5712fd89cd0190389ef6131ebdcdff4f23f370285a870b792d0",
+    sha256 = "05aa33f6241d43d59402f61a203d57d79e83b7759430fc63a8cf0417d619eb27",
 )

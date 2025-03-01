@@ -67,6 +67,9 @@ cc_tool(
     src = select({{
         ":clang": "//clang:link_actions",
     }}),
+    data = select({{
+        ":clang": ["//clang:link_data"],
+    }}),
 )
 
 cc_tool(
