@@ -35,7 +35,7 @@ config_setting_tpl = """
 config_setting(
     name = "{value}",
     flag_values = {{
-        "//:{config}": "{value}",
+        "//{dir}:{config}": "{value}",
     }},
 )
 """.lstrip()
@@ -85,9 +85,9 @@ def generate_module():
     with open('MODULE.bazel', 'w') as file:
         file.write(module)
 
-# =============
-# || //BUILD ||
-# =============
+# ========================
+# || //toolchains/BUILD ||
+# ========================
 def generate_root_build():
     with open('repo_gen/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
@@ -97,18 +97,19 @@ def generate_root_build():
     for toolchain in toolchains:
         config_setting = config_setting_tpl.format(
             value=toolchain[1],
-            config="version"
+            config="version",
+            dir="toolchains"
         )
 
         versions += config_setting
 
     build = build_tpl.format(version_configs=versions)
-    with open('BUILD', 'w') as file:
+    with open('toolchains/BUILD', 'w') as file:
         file.write(build)
 
-# =========================
-# || //<toolchain>/BUILD ||
-# =========================
+# ====================================
+# || //toolchains/<toolchain>/BUILD ||
+# ====================================
 def is_newer(version, latest):
     version = version.split('.')
     latest = latest.split('.')
@@ -144,10 +145,10 @@ def generate_tool_build():
         for name, versions_latest in versions_lookup.items():
             versions = versions_latest["versions"]
             latest = versions_latest["latest"]
-            os.makedirs(name, exist_ok=True)
-            conditions = f"        \"//:latest\": \"//{name}/{latest}:{action}\",\n"
+            os.makedirs(f"toolchains/{name}", exist_ok=True)
+            conditions = f"        \"//toolchains:latest\": \"//toolchains/{name}/{latest}:{action}\",\n"
             for version in versions:
-                conditions += f"        \"//:{version}\": \"//{name}/{version}:{action}\",\n"
+                conditions += f"        \"//toolchains:{version}\": \"//toolchains/{name}/{version}:{action}\",\n"
             
             alias = alias_tpl.format(
                 action=action,
@@ -156,12 +157,12 @@ def generate_tool_build():
 
             aliases += alias
 
-    with open(f"{name}/BUILD", 'w') as file:
+    with open(f"toolchains/{name}/BUILD", 'w') as file:
         file.write(aliases)
 
-# ===================================
-# || //<toolchain>/<version>/BUILD ||
-# ===================================
+# ==============================================
+# || //toolchains/<toolchain>/<version>/BUILD ||
+# ==============================================
 def generate_tool_version_build():
     toolchains = get_toolchains()
 
@@ -183,7 +184,7 @@ def generate_tool_version_build():
     
     for name, version_to_os_arch in toolchain_to_version_to_os_arch.items():
         for version, targets in version_to_os_arch.items():
-            os.makedirs(f"{name}/{version}", exist_ok=True)
+            os.makedirs(f"toolchains/{name}/{version}", exist_ok=True)
 
             aliases = visibility
             for action in actions:
@@ -198,7 +199,7 @@ def generate_tool_version_build():
 
                 aliases += alias
 
-            with open(f"{name}/{version}/BUILD", 'w') as file:
+            with open(f"toolchains/{name}/{version}/BUILD", 'w') as file:
                 file.write(aliases)
 
 
