@@ -1,26 +1,6 @@
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
-load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
-
-cc_toolchain(
-    name = "host_cc_toolchain",
-    # TODO
-    #    args = select({
-    #        "@platforms//os:linux": ["//toolchains/args/linux:args"],
-    #        "@platforms//os:windows": ["//toolchains/args/windows:args"],
-    #    }),
-    enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
-    known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
-    tool_map = "//toolchains:all_tools",
-)
-
-toolchain(
-    name = "host_toolchain",
-    toolchain = ":host_cc_toolchain",
-    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
-    visibility = ["//visibility:public"],
-)
 
 cc_tool_map(
     name = "all_tools",
@@ -33,6 +13,7 @@ cc_tool_map(
         "@rules_cc//cc/toolchains/actions:objcopy_embed_data": ":objcopy_embed_data",
         "@rules_cc//cc/toolchains/actions:strip": ":strip",
     },
+    visibility = ["//:__subpackages__"],
 )
 
 cc_tool(

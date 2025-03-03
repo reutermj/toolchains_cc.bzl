@@ -9,3 +9,14 @@ This package:
 * supports x86_64 and arm64,
 * has low overhead on CI runs, and
 * enables remote caching to further speed up your development and CI.
+
+## Show me the code
+
+Add two lines to your `MODULE.bazel` and it just works:
+
+```
+bazel_dep(name = "toolchains_cc")
+register_toolchains("@toolchains_cc//:toolchain", dev_dependency = True)
+```
+
+Check out the [full example here](examples/hello_world).
