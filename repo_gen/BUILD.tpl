@@ -19,64 +19,64 @@ cc_tool_map(
 cc_tool(
     name = "ar_actions",
     src = select({{
-        ":clang": "//toolchains/clang:ar_actions",
+        ":llvm": "//toolchains/llvm:ar_actions",
     }}),
 )
 
 cc_tool(
     name = "assembly_actions",
     src = select({{
-        ":clang": "//toolchains/clang:assembly_actions",
+        ":llvm": "//toolchains/llvm:assembly_actions",
     }}),
 )
 
 cc_tool(
     name = "c_compile",
     src = select({{
-        ":clang": "//toolchains/clang:c_compile",
+        ":llvm": "//toolchains/llvm:c_compile",
     }}),
 )
 
 cc_tool(
     name = "cpp_compile_actions",
     src = select({{
-        ":clang": "//toolchains/clang:cpp_compile_actions",
+        ":llvm": "//toolchains/llvm:cpp_compile_actions",
     }}),
 )
 
 cc_tool(
     name = "link_actions",
     src = select({{
-        ":clang": "//toolchains/clang:link_actions",
+        ":llvm": "//toolchains/llvm:link_actions",
     }}),
     data = select({{
-        ":clang": ["//toolchains/clang:link_data"],
+        ":llvm": ["//toolchains/llvm:link_data"],
     }}),
 )
 
 cc_tool(
     name = "objcopy_embed_data",
     src = select({{
-        ":clang": "//toolchains/clang:objcopy_embed_data",
+        ":llvm": "//toolchains/llvm:objcopy_embed_data",
     }}),
 )
 
 cc_tool(
     name = "strip",
     src = select({{
-        ":clang": "//toolchains/clang:strip",
+        ":llvm": "//toolchains/llvm:strip",
     }}),
 )
 
 string_flag(
     name = "toolchain",
-    build_setting_default = "clang",
+    build_setting_default = "llvm",
 )
 
 config_setting(
-    name = "clang",
+    name = "llvm",
     flag_values = {{
-        "//toolchains:toolchain": "clang",
+        "//toolchains:toolchain": "llvm",
     }},
 )
 
