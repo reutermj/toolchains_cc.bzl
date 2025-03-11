@@ -18,7 +18,7 @@ actions = [
     "strip",
 ]
 
-visibility = "package(default_visibility = [\"//:__subpackages__\"])\n\n"
+visibility = "package(default_visibility = [\"//:__subpackages__\"])\n"
 
 # ===============
 # || Templates ||
@@ -47,7 +47,7 @@ alias(
         {conditions}
     }})
 )
-""".lstrip()
+"""
 
 # ==================
 # || MODULE.bazel ||
@@ -214,11 +214,12 @@ def generate_tool_version_build():
                 aliases += alias
 
             with open(f"toolchains/{name}/{version}/BUILD", 'w') as file:
-                file.write(aliases)
+                file.write(aliases.strip())
+                file.write("\n")
 
 
 if __name__ == "__main__":
-    # generate_module()
+    generate_module()
     generate_root_build()
     generate_tool_build()
-    # generate_tool_version_build()
+    generate_tool_version_build()
