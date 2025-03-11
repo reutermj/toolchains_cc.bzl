@@ -1,8 +1,8 @@
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag", "string_list_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
 cc_toolchain(
-    name = "cc_toolchain",
+    name = "toolchains_cc_toolchain",
     # TODO
     #    args = select({
     #        "@platforms//os:linux": ["//toolchains/args/linux:args"],
@@ -14,8 +14,8 @@ cc_toolchain(
 )
 
 toolchain(
-    name = "toolchain",
-    toolchain = ":cc_toolchain",
+    name = "toolchains_cc",
+    toolchain = ":toolchains_cc_toolchain",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
     visibility = ["//visibility:public"],
 )

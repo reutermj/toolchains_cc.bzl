@@ -15,8 +15,8 @@ This package:
 Add two lines to your `MODULE.bazel` and it just works:
 
 ```
-bazel_dep(name = "toolchains_cc")
-register_toolchains("@toolchains_cc//:toolchain", dev_dependency = True)
+bazel_dep(name = "toolchains_cc", dev_dependency = True)
+register_toolchains("@toolchains_cc", dev_dependency = True)
 ```
 
 Check out the [full example here](examples/hello_world).

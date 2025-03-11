@@ -2,8 +2,15 @@
 module(name = "hello")
 
 bazel_dep(name = "rules_cc", version = "0.1.1")
-bazel_dep(name = "toolchains_cc")
-register_toolchains("@toolchains_cc//:toolchain", dev_dependency = True)
+
+# when adding a dependencies to toolchains_cc to your module,
+# add it as a dev_dependency so that:
+# 1. toolchains_cc isnt added to consumers of your module's transitive deps, and
+# 2. toolchains_cc isnt automatically registered in consumer's toolchains
+# This allows consumers of your module to register their own toolchain.
+# Hopefully it's toolchains_cc! But they may have their own needs.
+bazel_dep(name = "toolchains_cc", dev_dependency = True)
+register_toolchains("@toolchains_cc", dev_dependency = True)
 
 # for CI, delete the following lines for your build.
 local_path_override(
