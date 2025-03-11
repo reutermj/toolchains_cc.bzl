@@ -1,3 +1,4 @@
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag", "string_list_flag")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
 cc_toolchain(
@@ -16,5 +17,11 @@ toolchain(
     name = "toolchain",
     toolchain = ":cc_toolchain",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
+    visibility = ["//visibility:public"],
+)
+
+string_flag(
+    name = "use_toolchain",
+    build_setting_default = "llvm",
     visibility = ["//visibility:public"],
 )

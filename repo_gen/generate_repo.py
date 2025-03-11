@@ -35,7 +35,7 @@ config_setting_tpl = """
 config_setting(
     name = "{value}",
     flag_values = {{
-        "//{dir}:{config}": "{value}",
+        "//:{config}": "{value}",
     }},
 )
 """.lstrip()
@@ -93,17 +93,31 @@ def generate_root_build():
         build_tpl = file.read()
     toolchains = get_toolchains()
 
+    toolchain_to_versions = {}
     versions = ""
     for toolchain in toolchains:
+        name = toolchain[0]
+        version = toolchain[1]
+
+        if name not in toolchain_to_versions:
+            toolchain_to_versions[name] = set()
+        toolchain_to_versions[name].add(version)
+
         config_setting = config_setting_tpl.format(
-            value=toolchain[1],
-            config="version",
-            dir="toolchains"
+            value=f"{name}-{version}",
+            config="use_toolchain",
         )
 
         versions += config_setting
 
-    build = build_tpl.format(version_configs=versions)
+    formatting = {"version_configs": versions}
+    for name, versions in toolchain_to_versions.items():
+        version_tags = ""
+        for version in versions:
+            version_tags += f"        \":{name}-{version}\",\n"
+        formatting[f"{name}_versions"] = version_tags.strip()
+
+    build = build_tpl.format(**formatting)
     with open('toolchains/BUILD', 'w') as file:
         file.write(build)
 
@@ -146,9 +160,9 @@ def generate_tool_build():
             versions = versions_latest["versions"]
             latest = versions_latest["latest"]
             os.makedirs(f"toolchains/{name}", exist_ok=True)
-            conditions = f"        \"//toolchains:latest\": \"//toolchains/{name}/{latest}:{action}\",\n"
+            conditions = f"        \"//toolchains:{name}-latest\": \"//toolchains/{name}/{latest}:{action}\",\n"
             for version in versions:
-                conditions += f"        \"//toolchains:{version}\": \"//toolchains/{name}/{version}:{action}\",\n"
+                conditions += f"        \"//toolchains:{name}-{version}\": \"//toolchains/{name}/{version}:{action}\",\n"
             
             alias = alias_tpl.format(
                 action=action,
@@ -204,7 +218,7 @@ def generate_tool_version_build():
 
 
 if __name__ == "__main__":
-    generate_module()
+    # generate_module()
     generate_root_build()
     generate_tool_build()
-    generate_tool_version_build()
+    # generate_tool_version_build()

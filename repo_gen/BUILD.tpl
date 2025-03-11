@@ -1,4 +1,4 @@
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
@@ -68,27 +68,18 @@ cc_tool(
     }}),
 )
 
-string_flag(
-    name = "toolchain",
-    build_setting_default = "llvm",
-)
-
-config_setting(
+selects.config_setting_group(
     name = "llvm",
-    flag_values = {{
-        "//toolchains:toolchain": "llvm",
-    }},
-)
-
-string_flag(
-    name = "version",
-    build_setting_default = "latest",
+    match_any = [
+        ":llvm-latest",
+        {llvm_versions}
+    ],
 )
 
 config_setting(
-    name = "latest",
+    name = "llvm-latest",
     flag_values = {{
-        "//toolchains:version": "latest",
+        "//:use_toolchain": "llvm",
     }},
 )
 
