@@ -5,7 +5,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:ar_actions",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:ar_actions",
-    })
+    }),
 )
 
 alias(
@@ -13,7 +13,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:assembly_actions",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:assembly_actions",
-    })
+    }),
 )
 
 alias(
@@ -21,7 +21,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:c_compile",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:c_compile",
-    })
+    }),
 )
 
 alias(
@@ -29,7 +29,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:cpp_compile_actions",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:cpp_compile_actions",
-    })
+    }),
 )
 
 alias(
@@ -37,7 +37,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:link_actions",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:link_actions",
-    })
+    }),
 )
 
 alias(
@@ -45,7 +45,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:link_data",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:link_data",
-    })
+    }),
 )
 
 alias(
@@ -53,7 +53,7 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:objcopy_embed_data",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:objcopy_embed_data",
-    })
+    }),
 )
 
 alias(
@@ -61,5 +61,5 @@ alias(
     actual = select({
         "//toolchains:llvm-latest": "//toolchains/llvm/19.1.7:strip",
         "//toolchains:llvm-19.1.7": "//toolchains/llvm/19.1.7:strip",
-    })
+    }),
 )

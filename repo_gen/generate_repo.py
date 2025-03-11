@@ -45,7 +45,7 @@ alias(
     name = "{action}",
     actual = select({{
         {conditions}
-    }})
+    }}),
 )
 """
 
