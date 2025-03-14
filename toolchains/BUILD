@@ -1,4 +1,3 @@
-load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
 
@@ -19,73 +18,51 @@ cc_tool_map(
 cc_tool(
     name = "ar_actions",
     src = select({
-        ":llvm": "//toolchains/llvm:ar_actions",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:ar_actions",
     }),
 )
 
 cc_tool(
     name = "assembly_actions",
     src = select({
-        ":llvm": "//toolchains/llvm:assembly_actions",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:assembly_actions",
     }),
 )
 
 cc_tool(
     name = "c_compile",
     src = select({
-        ":llvm": "//toolchains/llvm:c_compile",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:c_compile",
     }),
 )
 
 cc_tool(
     name = "cpp_compile_actions",
     src = select({
-        ":llvm": "//toolchains/llvm:cpp_compile_actions",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:cpp_compile_actions",
     }),
 )
 
 cc_tool(
     name = "link_actions",
     src = select({
-        ":llvm": "//toolchains/llvm:link_actions",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:link_actions",
     }),
     data = select({
-        ":llvm": ["//toolchains/llvm:link_data"],
+        "//toolchains/llvm:llvm": ["//toolchains/llvm:link_data"],
     }),
 )
 
 cc_tool(
     name = "objcopy_embed_data",
     src = select({
-        ":llvm": "//toolchains/llvm:objcopy_embed_data",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:objcopy_embed_data",
     }),
 )
 
 cc_tool(
     name = "strip",
     src = select({
-        ":llvm": "//toolchains/llvm:strip",
+        "//toolchains/llvm:llvm": "//toolchains/llvm:strip",
     }),
-)
-
-selects.config_setting_group(
-    name = "llvm",
-    match_any = [
-        ":llvm-latest",
-        ":llvm-19.1.7",
-    ],
-)
-
-config_setting(
-    name = "llvm-latest",
-    flag_values = {
-        "//:use_toolchain": "llvm",
-    },
-)
-
-config_setting(
-    name = "llvm-19.1.7",
-    flag_values = {
-        "//:use_toolchain": "llvm-19.1.7",
-    },
 )

@@ -13,6 +13,13 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 # LLVM Linux x86_64
 http_archive(
     name = "llvm-19.1.7-linux-x86_64",
-    url = "https://github.com/reutermj/toolchains_cc/releases/download/llvm-19.1.7/llvm-19.1.7-linux-x86_64.tar.xz",
-    sha256 = "05aa33f6241d43d59402f61a203d57d79e83b7759430fc63a8cf0417d619eb27",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
+    sha256 = "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3",
+)
+
+# Musl Linux x86_64
+http_archive(
+    name = "musl-1.2.5-r8-linux-x86_64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r8-linux-x86_64.tar.xz",
+    sha256 = "1f3567d6a383002339377c1886e8fa54ac4cd342f539d8a77f7a6148830244ab",
 )

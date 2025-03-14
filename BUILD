@@ -1,13 +1,9 @@
-load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
+load("@bazel_skylib//rules:common_settings.bzl", "string_flag", "string_list_flag")
 load("@rules_cc//cc/toolchains:toolchain.bzl", "cc_toolchain")
 
 cc_toolchain(
     name = "toolchains_cc_toolchain",
-    # TODO
-    #    args = select({
-    #        "@platforms//os:linux": ["//toolchains/args/linux:args"],
-    #        "@platforms//os:windows": ["//toolchains/args/windows:args"],
-    #    }),
+    args = ["//runtimes:args"],
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     tool_map = "//toolchains:all_tools",
@@ -23,5 +19,11 @@ toolchain(
 string_flag(
     name = "use_toolchain",
     build_setting_default = "llvm",
+    visibility = ["//visibility:public"],
+)
+
+string_list_flag(
+    name = "use_runtimes",
+    build_setting_default = ["musl"],
     visibility = ["//visibility:public"],
 )
