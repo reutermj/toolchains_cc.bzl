@@ -4,7 +4,7 @@ import os
 # ==========
 # || Defs ||
 # ==========
-actions = [
+toolchain_actions = [
     "ar_actions",
     "assembly_actions",
     "c_compile",
@@ -59,16 +59,10 @@ selects.config_setting_group(
 # =======================
 # || Utility Functions ||
 # =======================
-def get_toolchains():
-    with open('repo_gen/toolchains.csv', 'r') as csvfile:
-        csvreader = csv.reader(csvfile)
-        toolchains = [row for row in csvreader if any(row)]
-    return toolchains
-
-def get_runtimes():
-    with open('repo_gen/runtimes.csv', 'r') as csvfile:
-        csvreader = csv.reader(csvfile)
-        runtimes = [row for row in csvreader if any(row)]
+def get_csv_rows(csv_file):
+    with open(csv_file, 'r') as file:
+        reader = csv.reader(file)
+        runtimes = [row for row in reader if any(row)]
     return runtimes
 
 def is_newer(version, latest):
@@ -207,8 +201,8 @@ def generate_module():
     with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
         module_tpl = file.read()
 
-    toolchains = get_toolchains()
-    runtimes = get_runtimes()
+    toolchains = get_csv_rows('repo_gen/toolchains.csv')
+    runtimes = get_csv_rows('repo_gen/runtimes.csv')
     
     # create the http_archive format replacements for the toolchain archives
     archives = {}
@@ -221,32 +215,22 @@ def generate_module():
         file.write(module)
 
 # ====================================
+# ||         for generating:        ||
 # || //toolchains/<toolchain>/BUILD ||
+# ||   //runtimes/<runtime>/BUILD   ||
 # ====================================
-# def generate_tool_build():
-#     toolchains = get_toolchains()
-
-#     versions_lookup = create_version_lookup(toolchains)
-#     name_to_aliases = create_version_aliases(versions_lookup, "toolchains", actions)
-
-#     for name, aliases in name_to_aliases.items():
-#         os.makedirs(f"toolchains/{name}", exist_ok=True)
-#         with open(f"toolchains/{name}/BUILD", 'w') as file:
-#             file.write(visibility)
-#             file.write(aliases)
-
-def generate_toolchain_build():
-    toolchains = get_toolchains()
-    with open('repo_gen/toolchains/BUILD.tpl', 'r') as file:
+def generate_build(csv_file, build_tpl_file, flag, dir, actions):
+    rows = get_csv_rows(csv_file)
+    with open(build_tpl_file, 'r') as file:
         build_tpl = file.read()
 
-    versions_lookup = create_version_lookup(toolchains)
-    name_to_configs = create_version_configs(versions_lookup, "use_toolchain")
-    name_to_aliases = create_version_aliases(versions_lookup, "toolchains", actions)
+    versions_lookup = create_version_lookup(rows)
+    name_to_configs = create_version_configs(versions_lookup, flag)
+    name_to_aliases = create_version_aliases(versions_lookup, dir, actions)
     name_to_group = create_config_settings_group(versions_lookup)
-    
+
     for name, _ in versions_lookup.items():
-        os.makedirs(f"toolchains/{name}", exist_ok=True)
+        os.makedirs(f"{dir}/{name}", exist_ok=True)
         build = build_tpl.format(
             name = name,
             version_aliases=name_to_aliases[name],
@@ -254,69 +238,30 @@ def generate_toolchain_build():
             version_configs=name_to_configs[name]
         )
 
-        with open(f"toolchains/{name}/BUILD", 'w') as file:
+        with open(f"{dir}/{name}/BUILD", 'w') as file:
             file.write(build)
 
 # ==============================================
+# ||              for generating:             ||
 # || //toolchains/<toolchain>/<version>/BUILD ||
+# ||   //runtimes/<runtime>/<version>/BUILD   ||
 # ==============================================
-def generate_tool_version_build():
-    toolchains = get_toolchains()
-    version_lookup = create_version_lookup(toolchains)
+def generate_version_build(csv_file, dir, actions):
+    rows = get_csv_rows(csv_file)
+    version_lookup = create_version_lookup(rows)
     
     for name, lookup in version_lookup.items():
         for version, platforms in lookup["version_to_platforms"].items():
-            os.makedirs(f"toolchains/{name}/{version}", exist_ok=True)
+            os.makedirs(f"{dir}/{name}/{version}", exist_ok=True)
             aliases = create_platform_aliases(name, version, platforms, actions)
 
-            with open(f"toolchains/{name}/{version}/BUILD", 'w') as file:
-                file.write(aliases)
-                file.write("\n")
-
-# ================================
-# || //runtimes/<runtime>/BUILD ||
-# ================================
-def generate_runtime_build():
-    runtimes = get_runtimes()
-    with open('repo_gen/runtimes/BUILD.tpl', 'r') as file:
-        build_tpl = file.read()
-
-    versions_lookup = create_version_lookup(runtimes)
-    name_to_configs = create_version_configs(versions_lookup, "use_runtimes")
-    name_to_aliases = create_version_aliases(versions_lookup, "runtimes", ["include", "lib"])
-    name_to_group = create_config_settings_group(versions_lookup)
-    
-    for name, _ in versions_lookup.items():
-        os.makedirs(f"runtimes/{name}", exist_ok=True)
-        build = build_tpl.format(
-            name = name,
-            version_aliases=name_to_aliases[name],
-            config_setting_group=name_to_group[name],
-            version_configs=name_to_configs[name]
-        )
-
-        with open(f"runtimes/{name}/BUILD", 'w') as file:
-            file.write(build)
-
-# ==========================================
-# || //runtimes/<runtime>/<version>/BUILD ||
-# ==========================================
-def generate_runtime_version_build():
-    runtimes = get_runtimes()
-    version_lookup = create_version_lookup(runtimes)
-    
-    for name, lookup in version_lookup.items():
-        for version, platforms in lookup["version_to_platforms"].items():
-            os.makedirs(f"runtimes/{name}/{version}", exist_ok=True)
-            aliases = create_platform_aliases(name, version, platforms, ["include", "lib"])
-
-            with open(f"runtimes/{name}/{version}/BUILD", 'w') as file:
+            with open(f"{dir}/{name}/{version}/BUILD", 'w') as file:
                 file.write(aliases)
                 file.write("\n")
 
 if __name__ == "__main__":
     generate_module()
-    generate_toolchain_build()
-    generate_tool_version_build()
-    generate_runtime_build()
-    generate_runtime_version_build()
+    generate_build('repo_gen/toolchains.csv', 'repo_gen/toolchains/BUILD.tpl', 'use_toolchain', 'toolchains', toolchain_actions)
+    generate_version_build('repo_gen/toolchains.csv', 'toolchains', toolchain_actions)
+    generate_build('repo_gen/runtimes.csv', 'repo_gen/runtimes/BUILD.tpl', 'use_runtimes', 'runtimes', ["include", "lib"])
+    generate_version_build('repo_gen/runtimes.csv', 'runtimes', ["include", "lib"])
