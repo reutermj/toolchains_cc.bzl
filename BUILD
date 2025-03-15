@@ -6,7 +6,7 @@ cc_toolchain(
     args = ["//runtimes:args"],
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
-    tool_map = "//toolchains:all_tools",
+    tool_map = "//toolchain:all_tools",
 )
 
 toolchain(

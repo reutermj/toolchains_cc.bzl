@@ -18,51 +18,51 @@ cc_tool_map(
 cc_tool(
     name = "ar_actions",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:ar_actions",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:ar_actions",
     }),
 )
 
 cc_tool(
     name = "assembly_actions",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:assembly_actions",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:assembly_actions",
     }),
 )
 
 cc_tool(
     name = "c_compile",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:c_compile",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:c_compile",
     }),
 )
 
 cc_tool(
     name = "cpp_compile_actions",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:cpp_compile_actions",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:cpp_compile_actions",
     }),
 )
 
 cc_tool(
     name = "link_actions",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:link_actions",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:link_actions",
     }),
     data = select({
-        "//toolchains/llvm:llvm": ["//toolchains/llvm:link_data"],
+        "//toolchain/llvm:llvm": ["//toolchain/llvm:link_data"],
     }),
 )
 
 cc_tool(
     name = "objcopy_embed_data",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:objcopy_embed_data",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:objcopy_embed_data",
     }),
 )
 
 cc_tool(
     name = "strip",
     src = select({
-        "//toolchains/llvm:llvm": "//toolchains/llvm:strip",
+        "//toolchain/llvm:llvm": "//toolchain/llvm:strip",
     }),
 )
