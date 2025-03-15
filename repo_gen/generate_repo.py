@@ -1,48 +1,6 @@
 import csv
 import os
 
-# ===============
-# || Templates ||
-# ===============
-http_archive_tpl = """
-http_archive(
-    name = "{type}-{version}-{target_os}-{arch}",
-    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/{type}-{version}-{target_os}-{arch}.tar.xz",
-    sha256 = "{sha}",
-)
-""".lstrip()
-
-config_setting_tpl = """
-config_setting(
-    name = "{value}",
-    flag_values = {{
-        "//:{config}": "{value}",
-    }},
-)
-""".lstrip()
-
-alias_tpl = """
-alias(
-    name = "{action}",
-    actual = select({{
-        {conditions}
-    }}),
-)
-"""
-
-config_settings_group_tpl = """
-selects.config_setting_group(
-    name = "{name}",
-    match_any = [
-        ":{name}-latest",
-        {versions}
-    ],
-)
-""".lstrip()
-
-# =======================
-# || Utility Functions ||
-# =======================
 def get_csv_rows(dir):
     with open(f'repo_gen/{dir}.csv', 'r') as file:
         reader = csv.reader(file)
@@ -87,6 +45,15 @@ def create_version_lookup(rows):
     
     return versions_lookup
 
+config_setting_tpl = """
+config_setting(
+    name = "{value}",
+    flag_values = {{
+        "//:{config}": "{value}",
+    }},
+)
+""".lstrip()
+
 def create_version_configs(version_lookup, config):
     name_to_configs = {}
     for name, lookup in version_lookup.items():
@@ -99,6 +66,40 @@ def create_version_configs(version_lookup, config):
             )
         name_to_configs[name] = settings.strip()
     return name_to_configs
+
+config_settings_group_tpl = """
+selects.config_setting_group(
+    name = "{name}",
+    match_any = [
+        ":{name}-latest",
+        {versions}
+    ],
+)
+""".lstrip()
+
+def create_config_settings_group(version_lookup):
+    name_to_group = {}
+    for name, lookup in version_lookup.items():
+        versions = lookup["versions"]
+
+        version_tags = ""
+        for version in versions:
+            version_tags += f"        \":{name}-{version}\",\n"
+
+        name_to_group[name] = config_settings_group_tpl.format(
+            name=name,
+            versions=version_tags.strip()
+        )
+    return name_to_group
+
+alias_tpl = """
+alias(
+    name = "{action}",
+    actual = select({{
+        {conditions}
+    }}),
+)
+"""
 
 def create_version_aliases(versions_lookup, dir, actions):
     name_to_aliases = {}
@@ -122,21 +123,6 @@ def create_version_aliases(versions_lookup, dir, actions):
 
     return name_to_aliases
 
-def create_config_settings_group(version_lookup):
-    name_to_group = {}
-    for name, lookup in version_lookup.items():
-        versions = lookup["versions"]
-
-        version_tags = ""
-        for version in versions:
-            version_tags += f"        \":{name}-{version}\",\n"
-
-        name_to_group[name] = config_settings_group_tpl.format(
-            name=name,
-            versions=version_tags.strip()
-        )
-    return name_to_group
-
 def create_platform_aliases(name, version, platforms, actions):
     aliases = "package(default_visibility = [\"//:__subpackages__\"])\n"
     for action in actions:
@@ -153,6 +139,15 @@ def create_platform_aliases(name, version, platforms, actions):
 
         aliases += alias
     return aliases.strip()
+
+
+http_archive_tpl = """
+http_archive(
+    name = "{type}-{version}-{target_os}-{arch}",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/{type}-{version}-{target_os}-{arch}.tar.xz",
+    sha256 = "{sha}",
+)
+""".lstrip()
 
 def create_module_archives(rows, archives):
     for row in rows:
@@ -174,9 +169,6 @@ def create_module_archives(rows, archives):
         )
         archives[key] += http_archive
 
-# =========================
-# || Generator Functions ||
-# =========================
 def generate_module():
     with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
         module_tpl = file.read()
