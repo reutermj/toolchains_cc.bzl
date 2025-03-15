@@ -1,22 +1,6 @@
 import csv
 import os
 
-# ==========
-# || Defs ||
-# ==========
-toolchain_actions = [
-    "ar_actions",
-    "assembly_actions",
-    "c_compile",
-    "cpp_compile_actions",
-    "link_actions",
-    "link_data",
-    "objcopy_embed_data",
-    "strip",
-]
-
-visibility = "package(default_visibility = [\"//:__subpackages__\"])\n"
-
 # ===============
 # || Templates ||
 # ===============
@@ -59,8 +43,8 @@ selects.config_setting_group(
 # =======================
 # || Utility Functions ||
 # =======================
-def get_csv_rows(csv_file):
-    with open(csv_file, 'r') as file:
+def get_csv_rows(dir):
+    with open(f'repo_gen/{dir}.csv', 'r') as file:
         reader = csv.reader(file)
         runtimes = [row for row in reader if any(row)]
     return runtimes
@@ -76,7 +60,6 @@ def is_newer(version, latest):
     return False
 
 def create_version_lookup(rows):
-    # aggregate all valid versions for a given runtime
     versions_lookup = {}
     for row in rows:
         name = row[0]
@@ -117,7 +100,6 @@ def create_version_configs(version_lookup, config):
         name_to_configs[name] = settings.strip()
     return name_to_configs
 
-
 def create_version_aliases(versions_lookup, dir, actions):
     name_to_aliases = {}
     for action in actions:
@@ -156,7 +138,7 @@ def create_config_settings_group(version_lookup):
     return name_to_group
 
 def create_platform_aliases(name, version, platforms, actions):
-    aliases = visibility
+    aliases = "package(default_visibility = [\"//:__subpackages__\"])\n"
     for action in actions:
         conditions = ""
         for platform in platforms:
@@ -172,9 +154,6 @@ def create_platform_aliases(name, version, platforms, actions):
         aliases += alias
     return aliases.strip()
 
-# ==================
-# || MODULE.bazel ||
-# ==================
 def create_module_archives(rows, archives):
     for row in rows:
         name = row[0]
@@ -195,37 +174,27 @@ def create_module_archives(rows, archives):
         )
         archives[key] += http_archive
 
-
+# =========================
+# || Generator Functions ||
+# =========================
 def generate_module():
-    # open the templates
     with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
         module_tpl = file.read()
-
-    toolchains = get_csv_rows('repo_gen/toolchains.csv')
-    runtimes = get_csv_rows('repo_gen/runtimes.csv')
     
-    # create the http_archive format replacements for the toolchain archives
     archives = {}
-    create_module_archives(toolchains, archives)
-    create_module_archives(runtimes, archives)
+    create_module_archives(get_csv_rows('toolchain'), archives)
+    create_module_archives(get_csv_rows('runtimes'), archives)
 
-    # write out the module file
     module = module_tpl.format(**archives)
     with open('MODULE.bazel', 'w') as file:
         file.write(module)
 
-# ====================================
-# ||         for generating:        ||
-# || //toolchains/<toolchain>/BUILD ||
-# ||   //runtimes/<runtime>/BUILD   ||
-# ====================================
-def generate_build(csv_file, build_tpl_file, flag, dir, actions):
-    rows = get_csv_rows(csv_file)
-    with open(build_tpl_file, 'r') as file:
+def generate_build_files(dir, actions):
+    with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
 
-    versions_lookup = create_version_lookup(rows)
-    name_to_configs = create_version_configs(versions_lookup, flag)
+    versions_lookup = create_version_lookup(get_csv_rows(dir))
+    name_to_configs = create_version_configs(versions_lookup, f"use_{dir}")
     name_to_aliases = create_version_aliases(versions_lookup, dir, actions)
     name_to_group = create_config_settings_group(versions_lookup)
 
@@ -241,16 +210,7 @@ def generate_build(csv_file, build_tpl_file, flag, dir, actions):
         with open(f"{dir}/{name}/BUILD", 'w') as file:
             file.write(build)
 
-# ==============================================
-# ||              for generating:             ||
-# || //toolchains/<toolchain>/<version>/BUILD ||
-# ||   //runtimes/<runtime>/<version>/BUILD   ||
-# ==============================================
-def generate_version_build(csv_file, dir, actions):
-    rows = get_csv_rows(csv_file)
-    version_lookup = create_version_lookup(rows)
-    
-    for name, lookup in version_lookup.items():
+    for name, lookup in versions_lookup.items():
         for version, platforms in lookup["version_to_platforms"].items():
             os.makedirs(f"{dir}/{name}/{version}", exist_ok=True)
             aliases = create_platform_aliases(name, version, platforms, actions)
@@ -261,7 +221,14 @@ def generate_version_build(csv_file, dir, actions):
 
 if __name__ == "__main__":
     generate_module()
-    generate_build('repo_gen/toolchains.csv', 'repo_gen/toolchains/BUILD.tpl', 'use_toolchain', 'toolchains', toolchain_actions)
-    generate_version_build('repo_gen/toolchains.csv', 'toolchains', toolchain_actions)
-    generate_build('repo_gen/runtimes.csv', 'repo_gen/runtimes/BUILD.tpl', 'use_runtimes', 'runtimes', ["include", "lib"])
-    generate_version_build('repo_gen/runtimes.csv', 'runtimes', ["include", "lib"])
+    generate_build_files('runtimes', ["include", "lib"])
+    generate_build_files('toolchain', [
+        "ar_actions",
+        "assembly_actions",
+        "c_compile",
+        "cpp_compile_actions",
+        "link_actions",
+        "link_data",
+        "objcopy_embed_data",
+        "strip",
+    ])
