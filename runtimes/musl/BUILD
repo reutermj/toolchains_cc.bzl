@@ -52,16 +52,16 @@ cc_args(
 alias(
     name = "include",
     actual = select({
-        ":musl-latest": "//runtimes/musl/1.2.5-r8:include",
-        ":musl-1.2.5-r8": "//runtimes/musl/1.2.5-r8:include",
+        ":musl-latest": "//runtimes/musl/1.2.5-r10:include",
+        ":musl-1.2.5-r10": "//runtimes/musl/1.2.5-r10:include",
     }),
 )
 
 alias(
     name = "lib",
     actual = select({
-        ":musl-latest": "//runtimes/musl/1.2.5-r8:lib",
-        ":musl-1.2.5-r8": "//runtimes/musl/1.2.5-r8:lib",
+        ":musl-latest": "//runtimes/musl/1.2.5-r10:lib",
+        ":musl-1.2.5-r10": "//runtimes/musl/1.2.5-r10:lib",
     }),
 )
 
@@ -69,7 +69,7 @@ selects.config_setting_group(
     name = "musl",
     match_any = [
         ":musl-latest",
-        ":musl-1.2.5-r8",
+        ":musl-1.2.5-r10",
     ],
 )
 
@@ -81,8 +81,8 @@ config_setting(
 )
 
 config_setting(
-    name = "musl-1.2.5-r8",
+    name = "musl-1.2.5-r10",
     flag_values = {
-        "//:use_runtimes": "musl-1.2.5-r8",
+        "//:use_runtimes": "musl-1.2.5-r10",
     },
 )
