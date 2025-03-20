@@ -47,43 +47,71 @@ def create_version_lookup(rows):
 
 config_setting_tpl = """
 config_setting(
-    name = "{value}",
+    name = "{name}",
     flag_values = {{
         "//:{config}": "{value}",
     }},
 )
 """.lstrip()
 
-def create_version_configs(version_lookup, config):
-    name_to_configs = {}
-    for name, lookup in version_lookup.items():
-        versions = lookup["versions"]
-        settings = ""
-        for version in versions:
-            settings += config_setting_tpl.format(
-                value=f"{name}-{version}",
-                config=config,
-            )
-        name_to_configs[name] = settings.strip()
-    return name_to_configs
-
 config_settings_group_tpl = """
 selects.config_setting_group(
     name = "{name}",
     match_any = [
-        ":{name}-latest",
         {versions}
     ],
 )
 """.lstrip()
 
-def create_config_settings_group(version_lookup):
-    name_to_group = {}
-    for name, lookup in version_lookup.items():
-        versions = lookup["versions"]
+def create_version_configs(rows, dir):
+    name_to_configs = {}
+    for row in rows:
+        name = row["name"]
+        settings = ""
+        for version, _ in row["versions"].items():
+            if "configurations" in row:
+                configs = []
+                for config, info in row["configurations"].items():
+                    config_name = f"{name}-{config}-{version}"
+                    configs.append(config_name)
+                    if info["is-default"]:
+                        settings += config_setting_tpl.format(
+                            name=config_name,
+                            value=f"{name}-{version}",
+                            config=f"use_{dir}",
+                        )
+                    else:
+                        settings += config_setting_tpl.format(
+                            name=config_name,
+                            value=f"{name}-{config}-{version}",
+                            config=f"use_{dir}",
+                        )
+                
+                version_tags = ""
+                for config in configs:
+                    version_tags += f"        \":{config}\",\n"
+                
+                settings += config_settings_group_tpl.format(
+                    name=f"{name}-{version}",
+                    versions=version_tags.strip()
+                )
+                    
+            else:
+                settings += config_setting_tpl.format(
+                    name=f"{name}-{version}",
+                    value=f"{name}-{version}",
+                    config=f"use_{dir}",
+                )
 
-        version_tags = ""
-        for version in versions:
+        name_to_configs[name] = settings.strip()
+    return name_to_configs
+
+def create_config_settings_group(rows):
+    name_to_group = {}
+    for row in rows:
+        name = row["name"]
+        version_tags = f"        \":{name}-latest\",\n"
+        for version, _ in row["versions"].items():
             version_tags += f"        \":{name}-{version}\",\n"
 
         name_to_group[name] = config_settings_group_tpl.format(
@@ -101,14 +129,14 @@ alias(
 )
 """
 
-def create_version_aliases(versions_lookup, dir, actions):
+def create_version_aliases(rows, dir, actions):
     name_to_aliases = {}
     for action in actions:
-        for name, versions_latest in versions_lookup.items():
-            versions = versions_latest["versions"]
-            latest = versions_latest["latest"]
+        for row in rows:
+            name = row["name"]
+            latest = row["default-version"]
             conditions = f"        \":{name}-latest\": \"//{dir}/{name}/{latest}:{action}\",\n"
-            for version in versions:
+            for version, _ in row["versions"].items():
                 conditions += f"        \":{name}-{version}\": \"//{dir}/{name}/{version}:{action}\",\n"
             
             alias = alias_tpl.format(
@@ -123,14 +151,13 @@ def create_version_aliases(versions_lookup, dir, actions):
 
     return name_to_aliases
 
-def create_platform_aliases(name, version, platforms, actions):
+def create_platform_aliases(name, version, os_to_arch, actions):
     aliases = "package(default_visibility = [\"//:__subpackages__\"])\n"
     for action in actions:
         conditions = ""
-        for platform in platforms:
-            target_os = platform["os"]
-            arch = platform["arch"]
-            conditions += f"        \"//constraint:{target_os}_{arch}\": \"@{name}-{version}-{target_os}-{arch}//:{action}\",\n"
+        for target_os, arch_to_info in os_to_arch.items():
+            for arch, _ in arch_to_info.items():
+                conditions += f"        \"//constraint:{target_os}_{arch}\": \"@{name}-{version}-{target_os}-{arch}//:{action}\",\n"
         
         alias = alias_tpl.format(
             action=action,
@@ -151,23 +178,27 @@ http_archive(
 
 def create_module_archives(rows, archives):
     for row in rows:
-        key = "{name}_{target_os}_{arch}".format(
-            name=row["name"], 
-            target_os=row["os"], 
-            arch=row["arch"]
-        )
+        for version, os_to_arch in row["versions"].items():
+            for target_os, archs in os_to_arch.items():
+                for arch, info in archs.items():
+                    key = "{name}_{target_os}_{arch}".format(
+                        name=row["name"], 
+                        target_os=target_os, 
+                        arch=arch
+                    )
 
-        if key not in archives:
-            archives[key] = ""
-        http_archive = http_archive_tpl.format(
-            type=row["name"],
-            version=row["version"],
-            target_os=row["os"],
-            arch=row["arch"],
-            sha=row["sha256"],
-            artifact_name=row["artifact-name"]
-        )
-        archives[key] += http_archive
+                    if key not in archives:
+                        archives[key] = ""
+
+                    http_archive = http_archive_tpl.format(
+                        type=row["name"],
+                        version=version,
+                        target_os=target_os,
+                        arch=arch,
+                        sha=info["sha256"],
+                        artifact_name=info["artifact-name"]
+                    )
+                    archives[key] += http_archive
 
 def generate_module():
     with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
@@ -185,12 +216,14 @@ def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
 
-    versions_lookup = create_version_lookup(get_configurations(dir))
-    name_to_configs = create_version_configs(versions_lookup, f"use_{dir}")
-    name_to_aliases = create_version_aliases(versions_lookup, dir, actions)
-    name_to_group = create_config_settings_group(versions_lookup)
+    configurations = get_configurations(dir)
+    name_to_configs = create_version_configs(configurations, dir)
+    
+    name_to_aliases = create_version_aliases(configurations, dir, actions)
+    name_to_group = create_config_settings_group(configurations)
 
-    for name, _ in versions_lookup.items():
+    for row in configurations:
+        name = row["name"]
         os.makedirs(f"{dir}/{name}", exist_ok=True)
         build = build_tpl.format(
             name = name,
@@ -202,14 +235,17 @@ def generate_build_files(dir, actions):
         with open(f"{dir}/{name}/BUILD", 'w') as file:
             file.write(build)
 
-    for name, lookup in versions_lookup.items():
-        for version, platforms in lookup["version_to_platforms"].items():
+    for row in configurations:
+        for version, os_to_arch in row["versions"].items():
             os.makedirs(f"{dir}/{name}/{version}", exist_ok=True)
-            aliases = create_platform_aliases(name, version, platforms, actions)
+            aliases = create_platform_aliases(name, version, os_to_arch, actions)
 
             with open(f"{dir}/{name}/{version}/BUILD", 'w') as file:
                 file.write(aliases)
                 file.write("\n")
+                
+
+            
 
 if __name__ == "__main__":
     generate_module()

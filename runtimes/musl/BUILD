@@ -81,8 +81,21 @@ config_setting(
 )
 
 config_setting(
-    name = "musl-1.2.5",
+    name = "musl-shared-1.2.5",
     flag_values = {
         "//:use_runtimes": "musl-1.2.5",
     },
+)
+config_setting(
+    name = "musl-static-1.2.5",
+    flag_values = {
+        "//:use_runtimes": "musl-static-1.2.5",
+    },
+)
+selects.config_setting_group(
+    name = "musl-1.2.5",
+    match_any = [
+        ":musl-shared-1.2.5",
+        ":musl-static-1.2.5",
+    ],
 )
