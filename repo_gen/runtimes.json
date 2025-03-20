@@ -1,0 +1,24 @@
+[
+    {
+        "name": "musl",
+        "version": "1.2.5",
+        "os": "linux",
+        "arch": "x86_64",
+        "artifact-name": "musl-1.2.5-r10-linux-x86_64.tar.xz",
+        "sha256": "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
+        "configurations": [
+            {
+                "name": "shared",
+                "link-args": [
+                    "-lc"
+                ]
+            },
+            {
+                "name": "static",
+                "link-args": [
+                    "{lib}/libc.a"
+                ]
+            }
+        ]
+    }
+]

@@ -19,7 +19,7 @@ http_archive(
 
 # Musl Linux x86_64
 http_archive(
-    name = "musl-1.2.5-r10-linux-x86_64",
+    name = "musl-1.2.5-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
 )

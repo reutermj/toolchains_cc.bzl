@@ -1,11 +1,11 @@
-import csv
 import os
+import json
 
-def get_csv_rows(dir):
-    with open(f'repo_gen/{dir}.csv', 'r') as file:
-        reader = csv.reader(file)
-        runtimes = [row for row in reader if any(row)]
-    return runtimes
+def get_configurations(dir):
+    with open(f'repo_gen/{dir}.json', 'r') as file:
+        rows = json.load(file)
+    
+    return rows
 
 def is_newer(version, latest):
     version = version.split('.')
@@ -20,10 +20,10 @@ def is_newer(version, latest):
 def create_version_lookup(rows):
     versions_lookup = {}
     for row in rows:
-        name = row[0]
-        version = row[1]
-        target_os = row[2]
-        arch = row[3]
+        name = row["name"]
+        version = row["version"]
+        target_os = row["os"]
+        arch = row["arch"]
 
         if name not in versions_lookup:
             versions_lookup[name] = {
@@ -144,28 +144,28 @@ def create_platform_aliases(name, version, platforms, actions):
 http_archive_tpl = """
 http_archive(
     name = "{type}-{version}-{target_os}-{arch}",
-    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/{type}-{version}-{target_os}-{arch}.tar.xz",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/{artifact_name}",
     sha256 = "{sha}",
 )
 """.lstrip()
 
 def create_module_archives(rows, archives):
     for row in rows:
-        name = row[0]
-        version = row[1]
-        target_os = row[2]
-        arch = row[3]
-        sha = row[4]
-        key = f"{name}_{target_os}_{arch}"
+        key = "{name}_{target_os}_{arch}".format(
+            name=row["name"], 
+            target_os=row["os"], 
+            arch=row["arch"]
+        )
 
         if key not in archives:
             archives[key] = ""
         http_archive = http_archive_tpl.format(
-            type=name,
-            version=version,
-            target_os=target_os,
-            arch=arch,
-            sha=sha
+            type=row["name"],
+            version=row["version"],
+            target_os=row["os"],
+            arch=row["arch"],
+            sha=row["sha256"],
+            artifact_name=row["artifact-name"]
         )
         archives[key] += http_archive
 
@@ -174,8 +174,8 @@ def generate_module():
         module_tpl = file.read()
     
     archives = {}
-    create_module_archives(get_csv_rows('toolchain'), archives)
-    create_module_archives(get_csv_rows('runtimes'), archives)
+    create_module_archives(get_configurations('toolchain'), archives)
+    create_module_archives(get_configurations('runtimes'), archives)
 
     module = module_tpl.format(**archives)
     with open('MODULE.bazel', 'w') as file:
@@ -185,7 +185,7 @@ def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
 
-    versions_lookup = create_version_lookup(get_csv_rows(dir))
+    versions_lookup = create_version_lookup(get_configurations(dir))
     name_to_configs = create_version_configs(versions_lookup, f"use_{dir}")
     name_to_aliases = create_version_aliases(versions_lookup, dir, actions)
     name_to_group = create_config_settings_group(versions_lookup)
