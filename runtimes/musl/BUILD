@@ -74,12 +74,24 @@ selects.config_setting_group(
 )
 
 config_setting(
-    name = "musl-latest",
+    name = "musl-shared-latest",
     flag_values = {
         "//:use_runtimes": "musl",
     },
 )
-
+config_setting(
+    name = "musl-static-latest",
+    flag_values = {
+        "//:use_runtimes": "musl-static",
+    },
+)
+selects.config_setting_group(
+    name = "musl-latest",
+    match_any = [
+        ":musl-shared-latest",
+        ":musl-static-latest",
+    ],
+)
 config_setting(
     name = "musl-shared-1.2.5",
     flag_values = {

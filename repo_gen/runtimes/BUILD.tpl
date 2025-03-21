@@ -50,11 +50,4 @@ cc_args(
 )
 {version_aliases}
 {config_setting_group}
-config_setting(
-    name = "{name}-latest",
-    flag_values = {{
-        "//:use_runtimes": "{name}",
-    }},
-)
-
 {version_configs}

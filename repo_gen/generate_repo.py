@@ -68,6 +68,39 @@ def create_version_configs(rows, dir):
     for row in rows:
         name = row["name"]
         settings = ""
+        if "configurations" in row:
+            configs = []
+            for config, info in row["configurations"].items():
+                config_name = f"{name}-{config}-latest"
+                configs.append(config_name)
+                if info["is-default"]:
+                    settings += config_setting_tpl.format(
+                        name=config_name,
+                        value=f"{name}",
+                        config=f"use_{dir}",
+                    )
+                else:
+                    settings += config_setting_tpl.format(
+                        name=config_name,
+                        value=f"{name}-{config}",
+                        config=f"use_{dir}",
+                    )
+
+            version_tags = ""
+            for config in configs:
+                version_tags += f"        \":{config}\",\n"
+            
+            settings += config_settings_group_tpl.format(
+                name=f"{name}-latest",
+                versions=version_tags.strip()
+            )
+        else:
+            settings += config_setting_tpl.format(
+                name=f"{name}-latest",
+                value=f"{name}",
+                config=f"use_{dir}",
+            )
+
         for version, _ in row["versions"].items():
             if "configurations" in row:
                 configs = []
@@ -95,7 +128,6 @@ def create_version_configs(rows, dir):
                     name=f"{name}-{version}",
                     versions=version_tags.strip()
                 )
-                    
             else:
                 settings += config_setting_tpl.format(
                     name=f"{name}-{version}",
@@ -218,7 +250,6 @@ def generate_build_files(dir, actions):
 
     configurations = get_configurations(dir)
     name_to_configs = create_version_configs(configurations, dir)
-    
     name_to_aliases = create_version_aliases(configurations, dir, actions)
     name_to_group = create_config_settings_group(configurations)
 

@@ -80,7 +80,6 @@ config_setting(
         "//:use_toolchain": "llvm",
     },
 )
-
 config_setting(
     name = "llvm-19.1.7",
     flag_values = {
