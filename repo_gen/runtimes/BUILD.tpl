@@ -9,6 +9,8 @@ cc_args_list(
             ":{name}": [
                 ":arg-include",
                 ":arg-lib",
+                ":link_actions",
+                ":link_executable_actions",
             ],
             "//conditions:default": [],
         }}),
@@ -48,6 +50,7 @@ cc_args(
         "lib": ":lib",
     }},
 )
+{link_args}
 {version_aliases}
 {config_setting_group}
 {version_configs}

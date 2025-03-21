@@ -9,6 +9,8 @@ cc_args_list(
             ":musl": [
                 ":arg-include",
                 ":arg-lib",
+                ":link_actions",
+                ":link_executable_actions",
             ],
             "//conditions:default": [],
         }),
@@ -48,6 +50,56 @@ cc_args(
         "lib": ":lib",
     },
 )
+
+cc_args(
+    name = "link_actions",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = select({
+        ":musl-shared": [
+                "-L{lib}",
+                "-fuse-ld=lld",
+                "-lc",
+            ],
+            ":musl-static": [
+                "-fuse-ld=lld",
+                "{lib}/libc.a",
+            ],
+    }),
+    data = [
+        ":lib",
+    ],
+    format = {
+        "lib": ":lib",
+    },
+)
+
+cc_args(
+    name = "link_executable_actions",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:link_executable_actions",
+    ],
+    args = select({
+        ":musl-shared": [
+                "{lib}/crt1.o",
+                "{lib}/crti.o",
+                "{lib}/crtn.o",
+            ],
+            ":musl-static": [
+                "{lib}/crt1.o",
+                "{lib}/crti.o",
+                "{lib}/crtn.o",
+            ],
+    }),
+    data = [
+        ":lib",
+    ],
+    format = {
+        "lib": ":lib",
+    },
+)
+
 
 alias(
     name = "include",
@@ -108,6 +160,20 @@ selects.config_setting_group(
     name = "musl-1.2.5",
     match_any = [
         ":musl-shared-1.2.5",
+        ":musl-static-1.2.5",
+    ],
+)
+selects.config_setting_group(
+    name = "musl-shared",
+    match_any = [
+        ":musl-shared-latest",
+        ":musl-shared-1.2.5",
+    ],
+)
+selects.config_setting_group(
+    name = "musl-static",
+    match_any = [
+        ":musl-static-latest",
         ":musl-static-1.2.5",
     ],
 )

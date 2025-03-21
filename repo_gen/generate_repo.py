@@ -134,6 +134,16 @@ def create_version_configs(rows, dir):
                     value=f"{name}-{version}",
                     config=f"use_{dir}",
                 )
+        if "configurations" in row:
+            for config, info in row["configurations"].items():
+                versions = f"        \":{name}-{config}-latest\",\n"
+                for version, _ in row["versions"].items():
+                    versions += f"        \":{name}-{config}-{version}\",\n"
+
+                settings += config_settings_group_tpl.format(
+                    name=f"{name}-{config}",
+                    versions=versions.strip()
+                )
 
         name_to_configs[name] = settings.strip()
     return name_to_configs
@@ -232,6 +242,56 @@ def create_module_archives(rows, archives):
                     )
                     archives[key] += http_archive
 
+link_arg_tpl = """
+cc_args(
+    name = "{link_action}",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:{link_action}",
+    ],
+    args = select({{
+        {link_args}
+    }}),
+    data = [
+        ":lib",
+    ],
+    format = {{
+        "lib": ":lib",
+    }},
+)
+"""
+
+def create_link_args(rows):
+    name_to_link_args = {}
+    for row in rows:
+        name = row["name"]
+        link_args = ""
+        for config, info in row["configurations"].items():
+            link_args += f"            \":{name}-{config}\": [\n"
+            for arg in info["link_actions"]:
+                link_args += f"                \"{arg}\",\n"
+            link_args += "            ],\n"
+            
+        name_to_link_args[name] = link_arg_tpl.format(
+            link_action="link_actions",
+            link_args=link_args.strip()
+        )
+    
+    for row in rows:
+        name = row["name"]
+        link_args = ""
+        for config, info in row["configurations"].items():
+            link_args += f"            \":{name}-{config}\": [\n"
+            for arg in info["link_executable_actions"]:
+                link_args += f"                \"{arg}\",\n"
+            link_args += "            ],\n"
+            
+        name_to_link_args[name] += link_arg_tpl.format(
+            link_action="link_executable_actions",
+            link_args=link_args.strip()
+        )
+
+    return name_to_link_args
+
 def generate_module():
     with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
         module_tpl = file.read()
@@ -252,6 +312,7 @@ def generate_build_files(dir, actions):
     name_to_configs = create_version_configs(configurations, dir)
     name_to_aliases = create_version_aliases(configurations, dir, actions)
     name_to_group = create_config_settings_group(configurations)
+    name_to_link_args = create_link_args(configurations)
 
     for row in configurations:
         name = row["name"]
@@ -260,7 +321,8 @@ def generate_build_files(dir, actions):
             name = name,
             version_aliases=name_to_aliases[name],
             config_setting_group=name_to_group[name],
-            version_configs=name_to_configs[name]
+            version_configs=name_to_configs[name],
+            link_args=name_to_link_args[name]
         )
 
         with open(f"{dir}/{name}/BUILD", 'w') as file:
@@ -281,13 +343,13 @@ def generate_build_files(dir, actions):
 if __name__ == "__main__":
     generate_module()
     generate_build_files('runtimes', ["include", "lib"])
-    generate_build_files('toolchain', [
-        "ar_actions",
-        "assembly_actions",
-        "c_compile",
-        "cpp_compile_actions",
-        "link_actions",
-        "link_data",
-        "objcopy_embed_data",
-        "strip",
-    ])
+    # generate_build_files('toolchain', [
+    #     "ar_actions",
+    #     "assembly_actions",
+    #     "c_compile",
+    #     "cpp_compile_actions",
+    #     "link_actions",
+    #     "link_data",
+    #     "objcopy_embed_data",
+    #     "strip",
+    # ])
