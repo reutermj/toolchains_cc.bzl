@@ -7,6 +7,17 @@ def get_configurations(dir):
     
     return rows
 
+# ===============
+# || Templates ||
+# ===============
+http_archive_tpl = """
+http_archive(
+    name = "{type}-{version}-{target_os}-{arch}",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/{artifact_name}",
+    sha256 = "{sha}",
+)
+""".lstrip()
+
 config_setting_tpl = """
 config_setting(
     name = "{name}",
@@ -25,6 +36,79 @@ selects.config_setting_group(
 )
 """.lstrip()
 
+alias_tpl = """
+alias(
+    name = "{action}",
+    actual = select({{
+        {conditions}
+    }}),
+)
+"""
+
+link_arg_tpl = """
+cc_args(
+    name = "{link_action}",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:{link_action}",
+    ],
+    args = select({{
+        {link_args}
+    }}),
+    data = [
+        ":lib",
+    ],
+    format = {{
+        "lib": ":lib",
+    }},
+)
+"""
+
+# ==================
+# || MODULE.bazel ||
+# ==================
+# This creates the http_archive rules for each toolchain/runtime
+# example outputs:
+# http_archive(
+#     name = "llvm-19.1.7-linux-x86_64",
+#     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
+#     sha256 = "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3",
+# )
+# ...
+# http_archive(
+#     name = "musl-1.2.5-linux-x86_64",
+#     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
+#     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
+# )
+def create_http_archives(rows):
+    archives = ""
+    for row in rows:
+        for version, os_to_arch in row["versions"].items():
+            for target_os, archs in os_to_arch.items():
+                for arch, info in archs.items():
+                    archives += http_archive_tpl.format(
+                        type=row["name"],
+                        version=version,
+                        target_os=target_os,
+                        arch=arch,
+                        sha=info["sha256"],
+                        artifact_name=info["artifact-name"]
+                    )
+    return archives
+
+def generate_module():
+    with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
+        module_tpl = file.read()
+    
+    archives = create_http_archives(get_configurations('toolchain'))
+    archives += create_http_archives(get_configurations('runtimes'))
+
+    module = module_tpl.format(archives = archives.strip())
+    with open('MODULE.bazel', 'w') as file:
+        file.write(module)
+
+# =================
+# || BUILD files ||
+# =================
 # this does way too much and should probably be broken up
 def create_version_configs(rows, dir):
     name_to_configs = {}
@@ -144,14 +228,6 @@ def create_top_level_config_settings_group(rows):
         )
     return name_to_group
 
-alias_tpl = """
-alias(
-    name = "{action}",
-    actual = select({{
-        {conditions}
-    }}),
-)
-"""
 
 # Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
 # Creates the aliases that switch on the version of the toolchain/runtime
@@ -227,71 +303,7 @@ def create_platform_aliases(name, version, os_to_arch, actions):
         aliases += alias
     return aliases.strip()
 
-
-http_archive_tpl = """
-http_archive(
-    name = "{type}-{version}-{target_os}-{arch}",
-    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/{artifact_name}",
-    sha256 = "{sha}",
-)
-""".lstrip()
-
-# Used in //MODULE.bazel
-# This creates the http_archive rules for each toolchain/runtime
-# example outputs:
-# http_archive(
-#     name = "llvm-19.1.7-linux-x86_64",
-#     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
-#     sha256 = "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3",
-# )
-# ...
-# http_archive(
-#     name = "musl-1.2.5-linux-x86_64",
-#     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
-#     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
-# )
-def create_http_archives(rows, archives):
-    for row in rows:
-        for version, os_to_arch in row["versions"].items():
-            for target_os, archs in os_to_arch.items():
-                for arch, info in archs.items():
-                    key = "{name}_{target_os}_{arch}".format(
-                        name=row["name"], 
-                        target_os=target_os, 
-                        arch=arch
-                    )
-
-                    if key not in archives:
-                        archives[key] = ""
-
-                    http_archive = http_archive_tpl.format(
-                        type=row["name"],
-                        version=version,
-                        target_os=target_os,
-                        arch=arch,
-                        sha=info["sha256"],
-                        artifact_name=info["artifact-name"]
-                    )
-                    archives[key] += http_archive
-
-link_arg_tpl = """
-cc_args(
-    name = "{link_action}",
-    actions = [
-        "@rules_cc//cc/toolchains/actions:{link_action}",
-    ],
-    args = select({{
-        {link_args}
-    }}),
-    data = [
-        ":lib",
-    ],
-    format = {{
-        "lib": ":lib",
-    }},
-)
-"""
-
+# This is too specific. Needs to be generalized a little bit
 def create_link_args(rows):
     name_to_link_args = {}
     for row in rows:
@@ -323,18 +335,6 @@ def create_link_args(rows):
         )
 
     return name_to_link_args
-
-def generate_module():
-    with open('repo_gen/MODULE.bazel.tpl', 'r') as file:
-        module_tpl = file.read()
-    
-    archives = {}
-    create_http_archives(get_configurations('toolchain'), archives)
-    create_http_archives(get_configurations('runtimes'), archives)
-
-    module = module_tpl.format(**archives)
-    with open('MODULE.bazel', 'w') as file:
-        file.write(module)
 
 def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
@@ -368,9 +368,6 @@ def generate_build_files(dir, actions):
             with open(f"{dir}/{name}/{version}/BUILD", 'w') as file:
                 file.write(aliases)
                 file.write("\n")
-                
-
-            
 
 if __name__ == "__main__":
     generate_module()

@@ -10,14 +10,11 @@ bazel_dep(name = "platforms", version = "0.0.11")
 # Solution: Split the platforms and individual toolchain distributions into multiple archives to only download what is required.
 http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# LLVM Linux x86_64
 http_archive(
     name = "llvm-19.1.7-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
     sha256 = "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3",
 )
-
-# Musl Linux x86_64
 http_archive(
     name = "musl-1.2.5-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
