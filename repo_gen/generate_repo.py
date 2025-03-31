@@ -7,44 +7,6 @@ def get_configurations(dir):
     
     return rows
 
-def is_newer(version, latest):
-    version = version.split('.')
-    latest = latest.split('.')
-    for v, l in zip(version, latest):
-        if int(v) > int(l):
-            return True
-        elif int(v) < int(l):
-            return False
-    return False
-
-def create_version_lookup(rows):
-    versions_lookup = {}
-    for row in rows:
-        name = row["name"]
-        version = row["version"]
-        target_os = row["os"]
-        arch = row["arch"]
-
-        if name not in versions_lookup:
-            versions_lookup[name] = {
-                "versions": set(),
-                "latest": "0.0.0",
-                "version_to_platforms": {}
-            }
-        if version not in versions_lookup[name]["version_to_platforms"]:
-            versions_lookup[name]["version_to_platforms"][version] = []
-        
-        versions_lookup[name]["versions"].add(version)
-        versions_lookup[name]["version_to_platforms"][version].append({
-            "os": target_os,
-            "arch": arch
-        })
-
-        if is_newer(version, versions_lookup[name]["latest"]):
-            versions_lookup[name]["latest"] = version
-    
-    return versions_lookup
-
 config_setting_tpl = """
 config_setting(
     name = "{name}",
@@ -58,11 +20,12 @@ config_settings_group_tpl = """
 selects.config_setting_group(
     name = "{name}",
     match_any = [
-        {versions}
+        {targets}
     ],
 )
 """.lstrip()
 
+# this does way too much and should probably be broken up
 def create_version_configs(rows, dir):
     name_to_configs = {}
     for row in rows:
@@ -92,7 +55,7 @@ def create_version_configs(rows, dir):
             
             settings += config_settings_group_tpl.format(
                 name=f"{name}-latest",
-                versions=version_tags.strip()
+                targets=version_tags.strip()
             )
         else:
             settings += config_setting_tpl.format(
@@ -126,7 +89,7 @@ def create_version_configs(rows, dir):
                 
                 settings += config_settings_group_tpl.format(
                     name=f"{name}-{version}",
-                    versions=version_tags.strip()
+                    targets=version_tags.strip()
                 )
             else:
                 settings += config_setting_tpl.format(
@@ -142,13 +105,32 @@ def create_version_configs(rows, dir):
 
                 settings += config_settings_group_tpl.format(
                     name=f"{name}-{config}",
-                    versions=versions.strip()
+                    targets=versions.strip()
                 )
 
         name_to_configs[name] = settings.strip()
     return name_to_configs
 
-def create_config_settings_group(rows):
+# Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
+# This creates the top-level `selects.config_setting_group` that identifies whether or not the toolchain/runtime is being used
+# example outputs:
+# from //toolchain/llvm/BUILD
+# selects.config_setting_group(
+#     name = "llvm",
+#     match_any = [
+#         ":llvm-latest",
+#         ":llvm-19.1.7",
+#     ],
+# )
+# from //runtime/musl/BUILD
+# selects.config_setting_group(
+#     name = "musl",
+#     match_any = [
+#         ":musl-latest",
+#         ":musl-1.2.5",
+#     ],
+# )
+def create_top_level_config_settings_group(rows):
     name_to_group = {}
     for row in rows:
         name = row["name"]
@@ -158,7 +140,7 @@ def create_config_settings_group(rows):
 
         name_to_group[name] = config_settings_group_tpl.format(
             name=name,
-            versions=version_tags.strip()
+            targets=version_tags.strip()
         )
     return name_to_group
 
@@ -171,6 +153,25 @@ alias(
 )
 """
 
+# Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
+# Creates the aliases that switch on the version of the toolchain/runtime
+# example outputs:
+# from //toolchain/llvm/BUILD:
+# alias(
+#     name = "c_compile",
+#     actual = select({
+#         ":llvm-latest": "//toolchain/llvm/19.1.7:c_compile",
+#         ":llvm-19.1.7": "//toolchain/llvm/19.1.7:c_compile",
+#     }),
+# )
+# from //runtimes/musl/BUILD:
+# alias(
+#     name = "include",
+#     actual = select({
+#         ":musl-latest": "//runtimes/musl/1.2.5:include",
+#         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",
+#     }),
+# )
 def create_version_aliases(rows, dir, actions):
     name_to_aliases = {}
     for action in actions:
@@ -193,6 +194,23 @@ def create_version_aliases(rows, dir, actions):
 
     return name_to_aliases
 
+# Used in //toolchain/<toolchain>/<version>/BUILD and //runtimes/<runtime>/<version>/BUILD files
+# Creates the aliases that switch on the os and arch of the toolchain/runtime
+# example outputs:
+# from //toolchain/llvm/19.1.7/BUILD:
+# alias(
+#     name = "c_compile",
+#     actual = select({
+#         "//constraint:linux_x86_64": "@llvm-19.1.7-linux-x86_64//:c_compile",
+#     }),
+# )
+# from //runtimes/musl/1.2.5/BUILD:
+# alias(
+#     name = "include",
+#     actual = select({
+#         "//constraint:linux_x86_64": "@musl-1.2.5-linux-x86_64//:include",
+#     }),
+# )
 def create_platform_aliases(name, version, os_to_arch, actions):
     aliases = "package(default_visibility = [\"//:__subpackages__\"])\n"
     for action in actions:
@@ -218,7 +236,21 @@ http_archive(
 )
 """.lstrip()
 
-def create_module_archives(rows, archives):
+# Used in //MODULE.bazel
+# This creates the http_archive rules for each toolchain/runtime
+# example outputs:
+# http_archive(
+#     name = "llvm-19.1.7-linux-x86_64",
+#     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
+#     sha256 = "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3",
+# )
+# ...
+# http_archive(
+#     name = "musl-1.2.5-linux-x86_64",
+#     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
+#     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
+# )
+def create_http_archives(rows, archives):
     for row in rows:
         for version, os_to_arch in row["versions"].items():
             for target_os, archs in os_to_arch.items():
@@ -297,8 +329,8 @@ def generate_module():
         module_tpl = file.read()
     
     archives = {}
-    create_module_archives(get_configurations('toolchain'), archives)
-    create_module_archives(get_configurations('runtimes'), archives)
+    create_http_archives(get_configurations('toolchain'), archives)
+    create_http_archives(get_configurations('runtimes'), archives)
 
     module = module_tpl.format(**archives)
     with open('MODULE.bazel', 'w') as file:
@@ -311,7 +343,7 @@ def generate_build_files(dir, actions):
     configurations = get_configurations(dir)
     name_to_configs = create_version_configs(configurations, dir)
     name_to_aliases = create_version_aliases(configurations, dir, actions)
-    name_to_group = create_config_settings_group(configurations)
+    name_to_group = create_top_level_config_settings_group(configurations)
     name_to_link_args = create_link_args(configurations)
 
     for row in configurations:
