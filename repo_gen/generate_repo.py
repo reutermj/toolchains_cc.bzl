@@ -123,8 +123,7 @@ def generate_module():
 # =================
 # || BUILD files ||
 # =================
-# this does way too much and should probably be broken up
-def create_version_configs(rows, dir):
+def create_latest(rows, dir):
     name_to_configs = {}
     for row in rows:
         name = row["name"]
@@ -134,18 +133,6 @@ def create_version_configs(rows, dir):
             for config, info in row["configurations"].items():
                 config_name = f"{name}-{config}-latest"
                 configs.append(config_name)
-                if info["is-default"]:
-                    settings += config_setting_tpl.format(
-                        name=config_name,
-                        value=f"{name}",
-                        config=f"use_{dir}",
-                    )
-                else:
-                    settings += config_setting_tpl.format(
-                        name=config_name,
-                        value=f"{name}-{config}",
-                        config=f"use_{dir}",
-                    )
 
             version_tags = ""
             for config in configs:
@@ -161,6 +148,37 @@ def create_version_configs(rows, dir):
                 value=f"{name}",
                 config=f"use_{dir}",
             )
+        name_to_configs[name] = settings
+    return name_to_configs
+
+def create_latest_with_configurations(rows, dir):
+    name_to_configs = {}
+    for row in rows:
+        name = row["name"]
+        settings = ""
+        if "configurations" in row:
+            for config, info in row["configurations"].items():
+                config_name = f"{name}-{config}-latest"
+                if info["is-default"]:
+                    settings += config_setting_tpl.format(
+                        name=config_name,
+                        value=f"{name}",
+                        config=f"use_{dir}",
+                    )
+                else:
+                    settings += config_setting_tpl.format(
+                        name=config_name,
+                        value=f"{name}-{config}",
+                        config=f"use_{dir}",
+                    )
+        name_to_configs[name] = settings
+    return name_to_configs
+
+def create_version(rows, dir):
+    name_to_configs = {}
+    for row in rows:
+        name = row["name"]
+        settings = ""
 
         for version, _ in row["versions"].items():
             if "configurations" in row:
@@ -168,6 +186,28 @@ def create_version_configs(rows, dir):
                 for config, info in row["configurations"].items():
                     config_name = f"{name}-{config}-{version}"
                     configs.append(config_name)
+                
+                version_tags = ""
+                for config in configs:
+                    version_tags += f"        \":{config}\",\n"
+                
+                settings += config_settings_group_tpl.format(
+                    name=f"{name}-{version}",
+                    targets=version_tags.strip()
+                )
+        name_to_configs[name] = settings
+    return name_to_configs
+
+def create_version_with_configurations(rows, dir):
+    name_to_configs = {}
+    for row in rows:
+        name = row["name"]
+        settings = ""
+
+        for version, _ in row["versions"].items():
+            if "configurations" in row:
+                for config, info in row["configurations"].items():
+                    config_name = f"{name}-{config}-{version}"
                     if info["is-default"]:
                         settings += config_setting_tpl.format(
                             name=config_name,
@@ -180,21 +220,22 @@ def create_version_configs(rows, dir):
                             value=f"{name}-{config}-{version}",
                             config=f"use_{dir}",
                         )
-                
-                version_tags = ""
-                for config in configs:
-                    version_tags += f"        \":{config}\",\n"
-                
-                settings += config_settings_group_tpl.format(
-                    name=f"{name}-{version}",
-                    targets=version_tags.strip()
-                )
             else:
                 settings += config_setting_tpl.format(
                     name=f"{name}-{version}",
                     value=f"{name}-{version}",
                     config=f"use_{dir}",
                 )
+        name_to_configs[name] = settings
+    return name_to_configs
+
+# this does way too much and should probably be broken up
+def create_version_configs(rows, dir):
+    name_to_configs = {}
+    for row in rows:
+        name = row["name"]
+        settings = ""
+
         if "configurations" in row:
             for config, info in row["configurations"].items():
                 versions = f"        \":{name}-{config}-latest\",\n"
@@ -206,7 +247,7 @@ def create_version_configs(rows, dir):
                     targets=versions.strip()
                 )
 
-        name_to_configs[name] = settings.strip()
+        name_to_configs[name] = settings
     return name_to_configs
 
 # Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
@@ -363,6 +404,10 @@ def generate_build_files(dir, actions):
 
     configurations = get_configurations(dir)
     name_to_configs = create_version_configs(configurations, dir)
+    name_to_latest = create_latest(configurations, dir)
+    name_to_latest_configs = create_latest_with_configurations(configurations, dir)
+    name_to_version = create_version(configurations, dir)
+    name_to_version_configs = create_version_with_configurations(configurations, dir)
     name_to_aliases = create_version_aliases(configurations, dir, actions)
     name_to_group = create_top_level_config_settings_group(configurations)
     name_to_link_args = create_link_args(configurations)
@@ -374,7 +419,7 @@ def generate_build_files(dir, actions):
             name = name,
             version_aliases=name_to_aliases[name],
             config_setting_group=name_to_group[name],
-            version_configs=name_to_configs[name],
+            version_configs=name_to_configs[name] + name_to_latest[name] + name_to_latest_configs[name] + name_to_version[name] + name_to_version_configs[name],
             link_args=name_to_link_args[name]
         )
 
