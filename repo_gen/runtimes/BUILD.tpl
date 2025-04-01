@@ -50,7 +50,4 @@ cc_args(
         "lib": ":lib",
     }},
 )
-{link_args}
-{version_aliases}
-{config_setting_group}
-{version_configs}
+

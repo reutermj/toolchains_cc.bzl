@@ -39,6 +39,7 @@ config_setting(
         "//:{config}": "{value}",
     }},
 )
+
 """.lstrip()
 
 config_settings_group_tpl = """
@@ -48,6 +49,7 @@ selects.config_setting_group(
         {targets}
     ],
 )
+
 """.lstrip()
 
 alias_tpl = """
@@ -57,7 +59,8 @@ alias(
         {conditions}
     }}),
 )
-"""
+
+""".lstrip()
 
 link_arg_tpl = """
 cc_args(
@@ -75,7 +78,8 @@ cc_args(
         "lib": ":lib",
     }},
 )
-"""
+
+""".lstrip()
 
 # ==================
 # || MODULE.bazel ||
@@ -348,7 +352,7 @@ def create_version_aliases(rows, dir, actions):
 #     }),
 # )
 def create_platform_aliases(name, version, os_to_arch, actions):
-    aliases = "package(default_visibility = [\"//:__subpackages__\"])\n"
+    aliases = "package(default_visibility = [\"//:__subpackages__\"])\n\n"
     for action in actions:
         configs = ""
         for target_os, arch_to_info in os_to_arch.items():
@@ -415,16 +419,21 @@ def generate_build_files(dir, actions):
     for row in configurations:
         name = row["name"]
         os.makedirs(f"{dir}/{name}", exist_ok=True)
-        build = build_tpl.format(
-            name = name,
-            version_aliases=name_to_aliases[name],
-            config_setting_group=name_to_group[name],
-            version_configs=name_to_configs[name] + name_to_latest[name] + name_to_latest_configs[name] + name_to_version[name] + name_to_version_configs[name],
-            link_args=name_to_link_args[name]
-        )
+        build = build_tpl.format(name = name)
+
+        build += name_to_link_args[name]
+        build += name_to_aliases[name]
+        build += name_to_group[name]
+        build += name_to_configs[name]
+        build += name_to_latest[name]
+        build += name_to_latest_configs[name]
+        build += name_to_version[name]
+        # strip the last one to ensure the output only has a single newline at the end
+        build += name_to_version_configs[name].strip()
 
         with open(f"{dir}/{name}/BUILD", 'w') as file:
             file.write(build)
+            file.write("\n")
 
     for row in configurations:
         for version, os_to_arch in row["versions"].items():

@@ -100,7 +100,6 @@ cc_args(
     },
 )
 
-
 alias(
     name = "include",
     actual = select({
@@ -132,6 +131,7 @@ selects.config_setting_group(
         ":musl-shared-1.2.5",
     ],
 )
+
 selects.config_setting_group(
     name = "musl-static",
     match_any = [
@@ -139,7 +139,7 @@ selects.config_setting_group(
         ":musl-static-1.2.5",
     ],
 )
-#break 
+
 selects.config_setting_group(
     name = "musl-latest",
     match_any = [
@@ -147,18 +147,21 @@ selects.config_setting_group(
         ":musl-static-latest",
     ],
 )
+
 config_setting(
     name = "musl-shared-latest",
     flag_values = {
         "//:use_runtimes": "musl",
     },
 )
+
 config_setting(
     name = "musl-static-latest",
     flag_values = {
         "//:use_runtimes": "musl-static",
     },
 )
+
 selects.config_setting_group(
     name = "musl-1.2.5",
     match_any = [
@@ -166,16 +169,17 @@ selects.config_setting_group(
         ":musl-static-1.2.5",
     ],
 )
+
 config_setting(
     name = "musl-shared-1.2.5",
     flag_values = {
         "//:use_runtimes": "musl-1.2.5",
     },
 )
+
 config_setting(
     name = "musl-static-1.2.5",
     flag_values = {
         "//:use_runtimes": "musl-static-1.2.5",
     },
 )
-
