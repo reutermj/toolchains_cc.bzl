@@ -7,6 +7,20 @@ def get_configurations(dir):
     
     return rows
 
+
+# Used to create a single config line in a select nested in an alias
+# Example:
+# alias(
+#     name = "include",
+#     actual = select({
+#         ":musl-latest": "//runtimes/musl/1.2.5:include", # generates this line
+#         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",  # or this line
+#     }),
+# )
+def create_single_select_config(condition, target):
+    eight_spaces = "        "
+    return f"{eight_spaces}\"{condition}\": \"{target}\",\n"
+
 # ===============
 # || Templates ||
 # ===============
@@ -254,13 +268,18 @@ def create_version_aliases(rows, dir, actions):
         for row in rows:
             name = row["name"]
             latest = row["default-version"]
-            conditions = f"        \":{name}-latest\": \"//{dir}/{name}/{latest}:{action}\",\n"
+
+            condition = f":{name}-latest"
+            target = f"//{dir}/{name}/{latest}:{action}"
+            configs = create_single_select_config(condition, target)
             for version, _ in row["versions"].items():
-                conditions += f"        \":{name}-{version}\": \"//{dir}/{name}/{version}:{action}\",\n"
+                condition = f":{name}-{version}"
+                target = f"//{dir}/{name}/{version}:{action}"
+                configs += create_single_select_config(condition, target)
             
             alias = alias_tpl.format(
                 action=action,
-                conditions=conditions.strip()
+                conditions=configs.strip()
             )
 
             if name in name_to_aliases:
@@ -290,14 +309,16 @@ def create_version_aliases(rows, dir, actions):
 def create_platform_aliases(name, version, os_to_arch, actions):
     aliases = "package(default_visibility = [\"//:__subpackages__\"])\n"
     for action in actions:
-        conditions = ""
+        configs = ""
         for target_os, arch_to_info in os_to_arch.items():
             for arch, _ in arch_to_info.items():
-                conditions += f"        \"//constraint:{target_os}_{arch}\": \"@{name}-{version}-{target_os}-{arch}//:{action}\",\n"
+                condition = f"//constraint:{target_os}_{arch}"
+                target = f"@{name}-{version}-{target_os}-{arch}//:{action}"
+                configs += create_single_select_config(condition, target)
         
         alias = alias_tpl.format(
             action=action,
-            conditions=conditions.strip()
+            conditions=configs.strip()
         )
 
         aliases += alias
