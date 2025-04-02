@@ -13,8 +13,8 @@ def get_configurations(dir):
 # alias(
 #     name = "include",
 #     actual = select({
-#         ":musl-latest": "//runtimes/musl/1.2.5:include", # generates this line
-#         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",  # or this line
+#         ":musl-latest": "//runtimes/musl/1.2.5:include", # used to generate this
+#         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",  # line or this line
 #     }),
 # )
 def create_single_select_config(condition, target):
@@ -127,132 +127,124 @@ def generate_module():
 # =================
 # || BUILD files ||
 # =================
-def create_latest(rows, dir):
-    name_to_configs = {}
-    for row in rows:
-        name = row["name"]
-        settings = ""
+def create_latest(row, dir):
+    name = row["name"]
+
+    if "configurations" not in row:
+        return config_setting_tpl.format(
+            name=f"{name}-latest",
+            value=f"{name}",
+            config=f"use_{dir}",
+        )
+    
+    settings = ""
+    configs = []
+    for config, _ in row["configurations"].items():
+        config_name = f"{name}-{config}-latest"
+        configs.append(config_name)
+
+    version_tags = ""
+    for config in configs:
+        version_tags += f"        \":{config}\",\n"
+    
+    settings += config_settings_group_tpl.format(
+        name=f"{name}-latest",
+        targets=version_tags.strip()
+    )
+    return settings
+
+def create_latest_with_configurations(row, dir):
+    name = row["name"]
+
+    if "configurations" not in row:
+        return ""
+
+    settings = ""
+    for config, info in row["configurations"].items():
+        config_name = f"{name}-{config}-latest"
+        if info["is-default"]:
+            settings += config_setting_tpl.format(
+                name=config_name,
+                value=f"{name}",
+                config=f"use_{dir}",
+            )
+        else:
+            settings += config_setting_tpl.format(
+                name=config_name,
+                value=f"{name}-{config}",
+                config=f"use_{dir}",
+            )
+    return settings
+
+def create_version(row):
+    name = row["name"]
+
+    settings = ""
+    for version, _ in row["versions"].items():
         if "configurations" in row:
             configs = []
-            for config, info in row["configurations"].items():
-                config_name = f"{name}-{config}-latest"
+            for config, _ in row["configurations"].items():
+                config_name = f"{name}-{config}-{version}"
                 configs.append(config_name)
-
+            
             version_tags = ""
             for config in configs:
                 version_tags += f"        \":{config}\",\n"
             
             settings += config_settings_group_tpl.format(
-                name=f"{name}-latest",
+                name=f"{name}-{version}",
                 targets=version_tags.strip()
             )
-        else:
+
+    return settings
+
+def create_version_with_configurations(row, dir):
+    name = row["name"]
+
+    if "configurations" not in row:
+        settings = ""
+        for version, _ in row["versions"].items():
             settings += config_setting_tpl.format(
-                name=f"{name}-latest",
-                value=f"{name}",
+                name=f"{name}-{version}",
+                value=f"{name}-{version}",
                 config=f"use_{dir}",
             )
-        name_to_configs[name] = settings
-    return name_to_configs
+        return settings
 
-def create_latest_with_configurations(rows, dir):
-    name_to_configs = {}
-    for row in rows:
-        name = row["name"]
-        settings = ""
-        if "configurations" in row:
-            for config, info in row["configurations"].items():
-                config_name = f"{name}-{config}-latest"
-                if info["is-default"]:
-                    settings += config_setting_tpl.format(
-                        name=config_name,
-                        value=f"{name}",
-                        config=f"use_{dir}",
-                    )
-                else:
-                    settings += config_setting_tpl.format(
-                        name=config_name,
-                        value=f"{name}-{config}",
-                        config=f"use_{dir}",
-                    )
-        name_to_configs[name] = settings
-    return name_to_configs
-
-def create_version(rows, dir):
-    name_to_configs = {}
-    for row in rows:
-        name = row["name"]
-        settings = ""
-
-        for version, _ in row["versions"].items():
-            if "configurations" in row:
-                configs = []
-                for config, info in row["configurations"].items():
-                    config_name = f"{name}-{config}-{version}"
-                    configs.append(config_name)
-                
-                version_tags = ""
-                for config in configs:
-                    version_tags += f"        \":{config}\",\n"
-                
-                settings += config_settings_group_tpl.format(
-                    name=f"{name}-{version}",
-                    targets=version_tags.strip()
-                )
-        name_to_configs[name] = settings
-    return name_to_configs
-
-def create_version_with_configurations(rows, dir):
-    name_to_configs = {}
-    for row in rows:
-        name = row["name"]
-        settings = ""
-
-        for version, _ in row["versions"].items():
-            if "configurations" in row:
-                for config, info in row["configurations"].items():
-                    config_name = f"{name}-{config}-{version}"
-                    if info["is-default"]:
-                        settings += config_setting_tpl.format(
-                            name=config_name,
-                            value=f"{name}-{version}",
-                            config=f"use_{dir}",
-                        )
-                    else:
-                        settings += config_setting_tpl.format(
-                            name=config_name,
-                            value=f"{name}-{config}-{version}",
-                            config=f"use_{dir}",
-                        )
-            else:
+    settings = ""
+    for version, _ in row["versions"].items():
+        for config, info in row["configurations"].items():
+            config_name = f"{name}-{config}-{version}"
+            if info["is-default"]:
                 settings += config_setting_tpl.format(
-                    name=f"{name}-{version}",
+                    name=config_name,
                     value=f"{name}-{version}",
                     config=f"use_{dir}",
                 )
-        name_to_configs[name] = settings
-    return name_to_configs
+            else:
+                settings += config_setting_tpl.format(
+                    name=config_name,
+                    value=f"{name}-{config}-{version}",
+                    config=f"use_{dir}",
+                )
+    return settings
 
 # this does way too much and should probably be broken up
-def create_version_configs(rows, dir):
-    name_to_configs = {}
-    for row in rows:
-        name = row["name"]
-        settings = ""
+def create_version_configs(row):
+    name = row["name"]
 
-        if "configurations" in row:
-            for config, info in row["configurations"].items():
-                versions = f"        \":{name}-{config}-latest\",\n"
-                for version, _ in row["versions"].items():
-                    versions += f"        \":{name}-{config}-{version}\",\n"
+    settings = ""
+    if "configurations" in row:
+        for config, info in row["configurations"].items():
+            versions = f"        \":{name}-{config}-latest\",\n"
+            for version, _ in row["versions"].items():
+                versions += f"        \":{name}-{config}-{version}\",\n"
 
-                settings += config_settings_group_tpl.format(
-                    name=f"{name}-{config}",
-                    targets=versions.strip()
-                )
-
-        name_to_configs[name] = settings
-    return name_to_configs
+            settings += config_settings_group_tpl.format(
+                name=f"{name}-{config}",
+                targets=versions.strip()
+            )
+    return settings
 
 # Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
 # This creates the top-level `selects.config_setting_group` that identifies whether or not the toolchain/runtime is being used
@@ -273,19 +265,17 @@ def create_version_configs(rows, dir):
 #         ":musl-1.2.5",
 #     ],
 # )
-def create_top_level_config_settings_group(rows):
-    name_to_group = {}
-    for row in rows:
-        name = row["name"]
-        version_tags = f"        \":{name}-latest\",\n"
-        for version, _ in row["versions"].items():
-            version_tags += f"        \":{name}-{version}\",\n"
+def create_top_level_config_settings_group(row):
+    name = row["name"]
 
-        name_to_group[name] = config_settings_group_tpl.format(
-            name=name,
-            targets=version_tags.strip()
-        )
-    return name_to_group
+    version_tags = f"        \":{name}-latest\",\n"
+    for version, _ in row["versions"].items():
+        version_tags += f"        \":{name}-{version}\",\n"
+
+    return config_settings_group_tpl.format(
+        name=name,
+        targets=version_tags.strip()
+    )
 
 
 # Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
@@ -307,32 +297,28 @@ def create_top_level_config_settings_group(rows):
 #         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",
 #     }),
 # )
-def create_version_aliases(rows, dir, actions):
-    name_to_aliases = {}
+def create_version_aliases(row, dir, actions):
+    aliases = ""
     for action in actions:
-        for row in rows:
-            name = row["name"]
-            latest = row["default-version"]
+        name = row["name"]
+        latest = row["default-version"]
 
-            condition = f":{name}-latest"
-            target = f"//{dir}/{name}/{latest}:{action}"
-            configs = create_single_select_config(condition, target)
-            for version, _ in row["versions"].items():
-                condition = f":{name}-{version}"
-                target = f"//{dir}/{name}/{version}:{action}"
-                configs += create_single_select_config(condition, target)
-            
-            alias = alias_tpl.format(
-                action=action,
-                conditions=configs.strip()
+        configs = create_single_select_config(
+            f":{name}-latest", 
+            f"//{dir}/{name}/{latest}:{action}"
+        )
+        for version, _ in row["versions"].items():
+            configs += create_single_select_config(
+                f":{name}-{version}", 
+                f"//{dir}/{name}/{version}:{action}"
             )
+        
+        aliases += alias_tpl.format(
+            action=action,
+            conditions=configs.strip()
+        )
 
-            if name in name_to_aliases:
-                name_to_aliases[name] += alias
-            else:
-                name_to_aliases[name] = alias
-
-    return name_to_aliases
+    return aliases
 
 # Used in //toolchain/<toolchain>/<version>/BUILD and //runtimes/<runtime>/<version>/BUILD files
 # Creates the aliases that switch on the os and arch of the toolchain/runtime
@@ -357,9 +343,10 @@ def create_platform_aliases(name, version, os_to_arch, actions):
         configs = ""
         for target_os, arch_to_info in os_to_arch.items():
             for arch, _ in arch_to_info.items():
-                condition = f"//constraint:{target_os}_{arch}"
-                target = f"@{name}-{version}-{target_os}-{arch}//:{action}"
-                configs += create_single_select_config(condition, target)
+                configs += create_single_select_config(
+                    f"//constraint:{target_os}_{arch}", 
+                    f"@{name}-{version}-{target_os}-{arch}//:{action}"
+                )
         
         alias = alias_tpl.format(
             action=action,
@@ -370,66 +357,54 @@ def create_platform_aliases(name, version, os_to_arch, actions):
     return aliases.strip()
 
 # This is too specific. Needs to be generalized a little bit
-def create_link_args(rows):
-    name_to_link_args = {}
-    for row in rows:
-        name = row["name"]
-        link_args = ""
-        for config, info in row["configurations"].items():
-            link_args += f"            \":{name}-{config}\": [\n"
-            for arg in info["link_actions"]:
-                link_args += f"                \"{arg}\",\n"
-            link_args += "            ],\n"
-            
-        name_to_link_args[name] = link_arg_tpl.format(
-            link_action="link_actions",
-            link_args=link_args.strip()
-        )
-    
-    for row in rows:
-        name = row["name"]
-        link_args = ""
-        for config, info in row["configurations"].items():
-            link_args += f"            \":{name}-{config}\": [\n"
-            for arg in info["link_executable_actions"]:
-                link_args += f"                \"{arg}\",\n"
-            link_args += "            ],\n"
-            
-        name_to_link_args[name] += link_arg_tpl.format(
-            link_action="link_executable_actions",
-            link_args=link_args.strip()
-        )
+def create_link_args(row):
+    args = ""
+    name = row["name"]
+    link_args = ""
+    for config, info in row["configurations"].items():
+        link_args += f"            \":{name}-{config}\": [\n"
+        for arg in info["link_actions"]:
+            link_args += f"                \"{arg}\",\n"
+        link_args += "            ],\n"
+        
+    args += link_arg_tpl.format(
+        link_action="link_actions",
+        link_args=link_args.strip()
+    )
 
-    return name_to_link_args
+    link_args = ""
+    for config, info in row["configurations"].items():
+        link_args += f"            \":{name}-{config}\": [\n"
+        for arg in info["link_executable_actions"]:
+            link_args += f"                \"{arg}\",\n"
+        link_args += "            ],\n"
+        
+    args += link_arg_tpl.format(
+        link_action="link_executable_actions",
+        link_args=link_args.strip()
+    )
+
+    return args
 
 def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
 
     configurations = get_configurations(dir)
-    name_to_configs = create_version_configs(configurations, dir)
-    name_to_latest = create_latest(configurations, dir)
-    name_to_latest_configs = create_latest_with_configurations(configurations, dir)
-    name_to_version = create_version(configurations, dir)
-    name_to_version_configs = create_version_with_configurations(configurations, dir)
-    name_to_aliases = create_version_aliases(configurations, dir, actions)
-    name_to_group = create_top_level_config_settings_group(configurations)
-    name_to_link_args = create_link_args(configurations)
-
     for row in configurations:
         name = row["name"]
         os.makedirs(f"{dir}/{name}", exist_ok=True)
         build = build_tpl.format(name = name)
-
-        build += name_to_link_args[name]
-        build += name_to_aliases[name]
-        build += name_to_group[name]
-        build += name_to_configs[name]
-        build += name_to_latest[name]
-        build += name_to_latest_configs[name]
-        build += name_to_version[name]
+    
+        build += create_link_args(row)
+        build += create_version_aliases(row, dir, actions)
+        build += create_top_level_config_settings_group(row)
+        build += create_version_configs(row)
+        build += create_latest(row, dir)
+        build += create_latest_with_configurations(row, dir)
+        build += create_version(row)
         # strip the last one to ensure the output only has a single newline at the end
-        build += name_to_version_configs[name].strip()
+        build += create_version_with_configurations(row, dir).strip()
 
         with open(f"{dir}/{name}/BUILD", 'w') as file:
             file.write(build)
