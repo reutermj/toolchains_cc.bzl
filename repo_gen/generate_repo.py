@@ -13,13 +13,26 @@ def get_configurations(dir):
 # alias(
 #     name = "include",
 #     actual = select({
-#         ":musl-latest": "//runtimes/musl/1.2.5:include", # used to generate this
-#         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",  # line or this line
+#         ":musl-latest": "//runtimes/musl/1.2.5:include", # used to generate this line
+#         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",  # or this line
 #     }),
 # )
 def create_single_select_config(condition, target):
     eight_spaces = "        "
     return f"{eight_spaces}\"{condition}\": \"{target}\",\n"
+
+# Used to create a single label for various things
+# Example:
+# selects.config_setting_group(
+#     name = "musl",
+#     match_any = [
+#         ":musl-latest", # used to generate this line
+#         ":musl-1.2.5",  # or this line
+#     ],
+# )
+def create_single_label(label, num_spaces):
+    spaces = " " * num_spaces
+    return f"{spaces}\"{label}\",\n"
 
 # ===============
 # || Templates ||
@@ -189,7 +202,7 @@ def create_version(row):
             
             version_tags = ""
             for config in configs:
-                version_tags += f"        \":{config}\",\n"
+                version_tags += create_single_label(f":{config}", 8)
             
             settings += config_settings_group_tpl.format(
                 name=f"{name}-{version}",
@@ -231,19 +244,20 @@ def create_version_with_configurations(row, dir):
 
 # this does way too much and should probably be broken up
 def create_version_configs(row):
+    if "configurations" not in row:
+        return ""
+    
     name = row["name"]
-
     settings = ""
-    if "configurations" in row:
-        for config, info in row["configurations"].items():
-            versions = f"        \":{name}-{config}-latest\",\n"
-            for version, _ in row["versions"].items():
-                versions += f"        \":{name}-{config}-{version}\",\n"
+    for config, _ in row["configurations"].items():
+        versions = create_single_label(f":{name}-{config}-latest", 8)
+        for version, _ in row["versions"].items():
+            versions += create_single_label(f":{name}-{config}-{version}", 8)
 
-            settings += config_settings_group_tpl.format(
-                name=f"{name}-{config}",
-                targets=versions.strip()
-            )
+        settings += config_settings_group_tpl.format(
+            name=f"{name}-{config}",
+            targets=versions.strip()
+        )
     return settings
 
 # Used in //toolchain/<toolchain>/BUILD and //runtimes/<runtime>/BUILD files
@@ -268,9 +282,9 @@ def create_version_configs(row):
 def create_top_level_config_settings_group(row):
     name = row["name"]
 
-    version_tags = f"        \":{name}-latest\",\n"
+    version_tags = create_single_label(f":{name}-latest", 8)
     for version, _ in row["versions"].items():
-        version_tags += f"        \":{name}-{version}\",\n"
+        version_tags += create_single_label(f":{name}-{version}", 8)
 
     return config_settings_group_tpl.format(
         name=name,
