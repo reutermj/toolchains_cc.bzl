@@ -168,11 +168,11 @@ def create_latest(row, dir):
     return settings
 
 def create_latest_with_configurations(row, dir):
-    name = row["name"]
-    default_config = row["default-configuration"]
-
     if "configurations" not in row:
         return ""
+    
+    name = row["name"]
+    default_config = row["default-configuration"]
 
     settings = ""
     for config_item in row["configurations"]:
@@ -221,7 +221,8 @@ def create_version_with_configurations(row, dir):
 
     if "configurations" not in row:
         settings = ""
-        for version, _ in row["versions"].items():
+        for version_item in row["versions"]:
+            version = version_item["version"]
             settings += config_setting_tpl.format(
                 name=f"{name}-{version}",
                 value=f"{name}-{version}",
@@ -387,6 +388,9 @@ def create_platform_aliases(name, version_item, actions):
 
 # This is too specific. Needs to be generalized a little bit
 def create_link_args(row):
+    if "configurations" not in row:
+        return ""
+
     args = ""
     name = row["name"]
     link_args = ""
@@ -453,13 +457,13 @@ def generate_build_files(dir, actions):
 if __name__ == "__main__":
     generate_module()
     generate_build_files('runtimes', ["include", "lib"])
-    # generate_build_files('toolchain', [
-    #     "ar_actions",
-    #     "assembly_actions",
-    #     "c_compile",
-    #     "cpp_compile_actions",
-    #     "link_actions",
-    #     "link_data",
-    #     "objcopy_embed_data",
-    #     "strip",
-    # ])
+    generate_build_files('toolchain', [
+        "ar_actions",
+        "assembly_actions",
+        "c_compile",
+        "cpp_compile_actions",
+        "link_actions",
+        "link_data",
+        "objcopy_embed_data",
+        "strip",
+    ])
