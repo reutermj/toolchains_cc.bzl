@@ -19,8 +19,9 @@
                 ]
             }
         ],
-        "configurations": {
-            "shared": {
+        "configurations": [
+            {
+                "name": "shared",
                 "is-default": true,
                 "link_actions": [
                     "-L{lib}",
@@ -33,7 +34,8 @@
                     "{lib}/crtn.o"
                 ]
             },
-            "static": {
+            {
+                "name": "static",
                 "is-default": false,
                 "link_actions": [
                     "-fuse-ld=lld",
@@ -45,6 +47,6 @@
                     "{lib}/crtn.o"
                 ]
             }
-        }
+        ]
     }
 ]

@@ -152,7 +152,8 @@ def create_latest(row, dir):
     
     settings = ""
     configs = []
-    for config, _ in row["configurations"].items():
+    for config_item in row["configurations"]:
+        config = config_item["name"]
         config_name = f"{name}-{config}-latest"
         configs.append(config_name)
 
@@ -173,9 +174,10 @@ def create_latest_with_configurations(row, dir):
         return ""
 
     settings = ""
-    for config, info in row["configurations"].items():
+    for config_item in row["configurations"]:
+        config = config_item["name"]
         config_name = f"{name}-{config}-latest"
-        if info["is-default"]:
+        if config_item["is-default"]:
             settings += config_setting_tpl.format(
                 name=config_name,
                 value=f"{name}",
@@ -197,7 +199,8 @@ def create_version(row):
         version = version_item["version"]
         if "configurations" in row:
             configs = []
-            for config, _ in row["configurations"].items():
+            for config_item in row["configurations"]:
+                config = config_item["name"]
                 config_name = f"{name}-{config}-{version}"
                 configs.append(config_name)
             
@@ -228,9 +231,10 @@ def create_version_with_configurations(row, dir):
     settings = ""
     for version_item in row["versions"]:
         version = version_item["version"]
-        for config, info in row["configurations"].items():
+        for config_item in row["configurations"]:
+            config = config_item["name"]
             config_name = f"{name}-{config}-{version}"
-            if info["is-default"]:
+            if config_item["is-default"]:
                 settings += config_setting_tpl.format(
                     name=config_name,
                     value=f"{name}-{version}",
@@ -251,7 +255,8 @@ def create_version_configs(row):
     
     name = row["name"]
     settings = ""
-    for config, _ in row["configurations"].items():
+    for config_item in row["configurations"]:
+        config = config_item["name"]
         versions = create_single_label(f":{name}-{config}-latest", 8)
         for version_item in row["versions"]:
             version = version_item["version"]
@@ -383,9 +388,10 @@ def create_link_args(row):
     args = ""
     name = row["name"]
     link_args = ""
-    for config, info in row["configurations"].items():
+    for config_item in row["configurations"]:
+        config = config_item["name"]
         link_args += f"            \":{name}-{config}\": [\n"
-        for arg in info["link_actions"]:
+        for arg in config_item["link_actions"]:
             link_args += f"                \"{arg}\",\n"
         link_args += "            ],\n"
         
@@ -395,9 +401,10 @@ def create_link_args(row):
     )
 
     link_args = ""
-    for config, info in row["configurations"].items():
+    for config_item in row["configurations"]:
+        config = config_item["name"]
         link_args += f"            \":{name}-{config}\": [\n"
-        for arg in info["link_executable_actions"]:
+        for arg in config_item["link_executable_actions"]:
             link_args += f"                \"{arg}\",\n"
         link_args += "            ],\n"
         
