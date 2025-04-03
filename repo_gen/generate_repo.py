@@ -169,6 +169,7 @@ def create_latest(row, dir):
 
 def create_latest_with_configurations(row, dir):
     name = row["name"]
+    default_config = row["default-configuration"]
 
     if "configurations" not in row:
         return ""
@@ -177,7 +178,7 @@ def create_latest_with_configurations(row, dir):
     for config_item in row["configurations"]:
         config = config_item["name"]
         config_name = f"{name}-{config}-latest"
-        if config_item["is-default"]:
+        if config == default_config:
             settings += config_setting_tpl.format(
                 name=config_name,
                 value=f"{name}",
@@ -231,10 +232,11 @@ def create_version_with_configurations(row, dir):
     settings = ""
     for version_item in row["versions"]:
         version = version_item["version"]
+        default_config = row["default-configuration"]
         for config_item in row["configurations"]:
             config = config_item["name"]
             config_name = f"{name}-{config}-{version}"
-            if config_item["is-default"]:
+            if config == default_config:
                 settings += config_setting_tpl.format(
                     name=config_name,
                     value=f"{name}-{version}",

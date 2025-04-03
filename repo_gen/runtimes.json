@@ -19,10 +19,10 @@
                 ]
             }
         ],
+        "default-configuration": "shared",
         "configurations": [
             {
                 "name": "shared",
-                "is-default": true,
                 "link_actions": [
                     "-L{lib}",
                     "-fuse-ld=lld",
@@ -36,7 +36,6 @@
             },
             {
                 "name": "static",
-                "is-default": false,
                 "link_actions": [
                     "-fuse-ld=lld",
                     "{lib}/libc.a"
