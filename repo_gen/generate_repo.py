@@ -113,16 +113,16 @@ cc_args(
 def create_http_archives(rows):
     archives = ""
     for row in rows:
-        for version, os_to_arch in row["versions"].items():
-            for target_os, archs in os_to_arch.items():
-                for arch, info in archs.items():
+        for version_item in row["versions"]:
+            for target_os_item in version_item["oses"]:
+                for arch_item in target_os_item["archs"]:
                     archives += http_archive_tpl.format(
                         type=row["name"],
-                        version=version,
-                        target_os=target_os,
-                        arch=arch,
-                        sha=info["sha256"],
-                        artifact_name=info["artifact-name"]
+                        version=version_item["version"],
+                        target_os=target_os_item["name"],
+                        arch=arch_item["name"],
+                        sha=arch_item["sha256"],
+                        artifact_name=arch_item["artifact-name"]
                     )
     return archives
 
@@ -193,7 +193,8 @@ def create_version(row):
     name = row["name"]
 
     settings = ""
-    for version, _ in row["versions"].items():
+    for version_item in row["versions"]:
+        version = version_item["version"]
         if "configurations" in row:
             configs = []
             for config, _ in row["configurations"].items():
@@ -225,7 +226,8 @@ def create_version_with_configurations(row, dir):
         return settings
 
     settings = ""
-    for version, _ in row["versions"].items():
+    for version_item in row["versions"]:
+        version = version_item["version"]
         for config, info in row["configurations"].items():
             config_name = f"{name}-{config}-{version}"
             if info["is-default"]:
@@ -251,7 +253,8 @@ def create_version_configs(row):
     settings = ""
     for config, _ in row["configurations"].items():
         versions = create_single_label(f":{name}-{config}-latest", 8)
-        for version, _ in row["versions"].items():
+        for version_item in row["versions"]:
+            version = version_item["version"]
             versions += create_single_label(f":{name}-{config}-{version}", 8)
 
         settings += config_settings_group_tpl.format(
@@ -279,11 +282,12 @@ def create_version_configs(row):
 #         ":musl-1.2.5",
 #     ],
 # )
-def create_top_level_config_settings_group(row):
-    name = row["name"]
+def create_top_level_config_settings_group(config):
+    name = config["name"]
 
     version_tags = create_single_label(f":{name}-latest", 8)
-    for version, _ in row["versions"].items():
+    for version_item in config["versions"]:
+        version = version_item["version"]
         version_tags += create_single_label(f":{name}-{version}", 8)
 
     return config_settings_group_tpl.format(
@@ -311,17 +315,18 @@ def create_top_level_config_settings_group(row):
 #         ":musl-1.2.5": "//runtimes/musl/1.2.5:include",
 #     }),
 # )
-def create_version_aliases(row, dir, actions):
+def create_version_aliases(config, dir, actions):
     aliases = ""
     for action in actions:
-        name = row["name"]
-        latest = row["default-version"]
+        name = config["name"]
+        latest = config["default-version"]
 
         configs = create_single_select_config(
             f":{name}-latest", 
             f"//{dir}/{name}/{latest}:{action}"
         )
-        for version, _ in row["versions"].items():
+        for version_item in config["versions"]:
+            version = version_item["version"]
             configs += create_single_select_config(
                 f":{name}-{version}", 
                 f"//{dir}/{name}/{version}:{action}"
@@ -351,12 +356,15 @@ def create_version_aliases(row, dir, actions):
 #         "//constraint:linux_x86_64": "@musl-1.2.5-linux-x86_64//:include",
 #     }),
 # )
-def create_platform_aliases(name, version, os_to_arch, actions):
+def create_platform_aliases(name, version_item, actions):
+    version = version_item["version"]
     aliases = "package(default_visibility = [\"//:__subpackages__\"])\n\n"
     for action in actions:
         configs = ""
-        for target_os, arch_to_info in os_to_arch.items():
-            for arch, _ in arch_to_info.items():
+        for target_os_item in version_item["oses"]:
+            target_os = target_os_item["name"]
+            for arch_item in target_os_item["archs"]:
+                arch = arch_item["name"]
                 configs += create_single_select_config(
                     f"//constraint:{target_os}_{arch}", 
                     f"@{name}-{version}-{target_os}-{arch}//:{action}"
@@ -404,30 +412,30 @@ def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
 
-    configurations = get_configurations(dir)
-    for row in configurations:
-        name = row["name"]
+    configs = get_configurations(dir)
+    for config in configs:
+        name = config["name"]
         os.makedirs(f"{dir}/{name}", exist_ok=True)
-        build = build_tpl.format(name = name)
-    
-        build += create_link_args(row)
-        build += create_version_aliases(row, dir, actions)
-        build += create_top_level_config_settings_group(row)
-        build += create_version_configs(row)
-        build += create_latest(row, dir)
-        build += create_latest_with_configurations(row, dir)
-        build += create_version(row)
-        # strip the last one to ensure the output only has a single newline at the end
-        build += create_version_with_configurations(row, dir).strip()
 
         with open(f"{dir}/{name}/BUILD", 'w') as file:
-            file.write(build)
+            file.write(build_tpl.format(name = name))
+            file.write(create_link_args(config))
+            file.write(create_version_aliases(config, dir, actions))
+            file.write(create_top_level_config_settings_group(config))
+            file.write(create_version_configs(config))
+            file.write(create_latest(config, dir))
+            file.write(create_latest_with_configurations(config, dir))
+            file.write(create_version(config))
+            # strip the last one to ensure the output only has a single newline at the end
+            file.write(create_version_with_configurations(config, dir).strip())
             file.write("\n")
 
-    for row in configurations:
-        for version, os_to_arch in row["versions"].items():
+    for config in configs:
+        name = config["name"]
+        for version_item in config["versions"]:
+            version = version_item["version"]
             os.makedirs(f"{dir}/{name}/{version}", exist_ok=True)
-            aliases = create_platform_aliases(name, version, os_to_arch, actions)
+            aliases = create_platform_aliases(name, version_item, actions)
 
             with open(f"{dir}/{name}/{version}/BUILD", 'w') as file:
                 file.write(aliases)
