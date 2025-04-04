@@ -23,27 +23,43 @@
         "configurations": [
             {
                 "name": "shared",
-                "link_actions": [
-                    "-L{lib}",
-                    "-fuse-ld=lld",
-                    "-lc"
-                ],
-                "link_executable_actions": [
-                    "{lib}/crt1.o",
-                    "{lib}/crti.o",
-                    "{lib}/crtn.o"
+                "actions": [
+                    {
+                        "name": "link_actions",
+                        "args": [
+                            "-L{lib}",
+                            "-fuse-ld=lld",
+                            "-lc"
+                        ]
+                    },
+                    {
+                        "name": "link_executable_actions",
+                        "args": [
+                            "{lib}/crt1.o",
+                            "{lib}/crti.o",
+                            "{lib}/crtn.o"
+                        ]
+                    }
                 ]
             },
             {
                 "name": "static",
-                "link_actions": [
-                    "-fuse-ld=lld",
-                    "{lib}/libc.a"
-                ],
-                "link_executable_actions": [
-                    "{lib}/crt1.o",
-                    "{lib}/crti.o",
-                    "{lib}/crtn.o"
+                "actions": [
+                    {
+                        "name": "link_actions",
+                        "args": [
+                            "-fuse-ld=lld",
+                            "{lib}/libc.a"
+                        ]
+                    },
+                    {
+                        "name": "link_executable_actions",
+                        "args": [
+                            "{lib}/crt1.o",
+                            "{lib}/crti.o",
+                            "{lib}/crtn.o"
+                        ]
+                    }
                 ]
             }
         ]

@@ -75,14 +75,14 @@ alias(
 
 """.lstrip()
 
-link_arg_tpl = """
+cc_arg_tpl = """
 cc_args(
-    name = "{link_action}",
+    name = "{action}",
     actions = [
-        "@rules_cc//cc/toolchains/actions:{link_action}",
+        "@rules_cc//cc/toolchains/actions:{action}",
     ],
     args = select({{
-        {link_args}
+        {args}
     }}),
     data = [
         ":lib",
@@ -386,38 +386,34 @@ def create_platform_aliases(name, version_item, actions):
         aliases += alias
     return aliases.strip()
 
-# This is too specific. Needs to be generalized a little bit
-def create_link_args(row):
+def create_configuration_args(row):
     if "configurations" not in row:
         return ""
 
-    args = ""
+    action_to_args = {}
+    
     name = row["name"]
-    link_args = ""
     for config_item in row["configurations"]:
         config = config_item["name"]
-        link_args += f"            \":{name}-{config}\": [\n"
-        for arg in config_item["link_actions"]:
-            link_args += f"                \"{arg}\",\n"
-        link_args += "            ],\n"
-        
-    args += link_arg_tpl.format(
-        link_action="link_actions",
-        link_args=link_args.strip()
-    )
 
-    link_args = ""
-    for config_item in row["configurations"]:
-        config = config_item["name"]
-        link_args += f"            \":{name}-{config}\": [\n"
-        for arg in config_item["link_executable_actions"]:
-            link_args += f"                \"{arg}\",\n"
-        link_args += "            ],\n"
-        
-    args += link_arg_tpl.format(
-        link_action="link_executable_actions",
-        link_args=link_args.strip()
-    )
+        for action_item in config_item["actions"]:
+            action = action_item["name"]
+            link_args = ""
+            link_args += f"            \":{name}-{config}\": [\n"
+            for arg in action_item["args"]:
+                link_args += f"                \"{arg}\",\n"
+            link_args += "            ],\n"
+
+            if action not in action_to_args:
+                action_to_args[action] = ""
+            action_to_args[action] += link_args
+
+    args = ""
+    for action, link_args in action_to_args.items():
+        args += cc_arg_tpl.format(
+            action=action,
+            args=link_args.strip()
+        )
 
     return args
 
@@ -432,7 +428,7 @@ def generate_build_files(dir, actions):
 
         with open(f"{dir}/{name}/BUILD", 'w') as file:
             build = build_tpl.format(name = name)
-            build += create_link_args(config)
+            build += create_configuration_args(config)
             build += create_version_aliases(config, dir, actions)
             build += create_top_level_config_settings_group(config)
             build += create_version_configs(config)
