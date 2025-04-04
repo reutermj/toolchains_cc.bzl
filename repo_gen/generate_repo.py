@@ -431,16 +431,18 @@ def generate_build_files(dir, actions):
         os.makedirs(f"{dir}/{name}", exist_ok=True)
 
         with open(f"{dir}/{name}/BUILD", 'w') as file:
-            file.write(build_tpl.format(name = name))
-            file.write(create_link_args(config))
-            file.write(create_version_aliases(config, dir, actions))
-            file.write(create_top_level_config_settings_group(config))
-            file.write(create_version_configs(config))
-            file.write(create_latest(config, dir))
-            file.write(create_latest_with_configurations(config, dir))
-            file.write(create_version(config))
-            # strip the last one to ensure the output only has a single newline at the end
-            file.write(create_version_with_configurations(config, dir).strip())
+            build = build_tpl.format(name = name)
+            build += create_link_args(config)
+            build += create_version_aliases(config, dir, actions)
+            build += create_top_level_config_settings_group(config)
+            build += create_version_configs(config)
+            build += create_latest(config, dir)
+            build += create_latest_with_configurations(config, dir)
+            build += create_version(config)
+            build += create_version_with_configurations(config, dir)
+
+            # ensure a single newline at the end of the file
+            file.write(build.strip())
             file.write("\n")
 
     for config in configs:
