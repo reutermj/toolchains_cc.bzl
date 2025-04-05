@@ -58,14 +58,14 @@ cc_args(
     ],
     args = select({
         ":musl-shared": [
-                "-L{lib}",
-                "-fuse-ld=lld",
-                "-lc",
-            ],
-            ":musl-static": [
-                "-fuse-ld=lld",
-                "{lib}/libc.a",
-            ],
+            "-L{lib}",
+            "-fuse-ld=lld",
+            "-lc",
+        ],
+        ":musl-static": [
+            "-fuse-ld=lld",
+            "{lib}/libc.a",
+        ],
     }),
     data = [
         ":lib",
@@ -82,15 +82,15 @@ cc_args(
     ],
     args = select({
         ":musl-shared": [
-                "{lib}/crt1.o",
-                "{lib}/crti.o",
-                "{lib}/crtn.o",
-            ],
-            ":musl-static": [
-                "{lib}/crt1.o",
-                "{lib}/crti.o",
-                "{lib}/crtn.o",
-            ],
+            "{lib}/crt1.o",
+            "{lib}/crti.o",
+            "{lib}/crtn.o",
+        ],
+        ":musl-static": [
+            "{lib}/crt1.o",
+            "{lib}/crti.o",
+            "{lib}/crtn.o",
+        ],
     }),
     data = [
         ":lib",

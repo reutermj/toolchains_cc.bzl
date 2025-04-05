@@ -386,6 +386,32 @@ def create_platform_aliases(name, version_item, actions):
         aliases += alias
     return aliases.strip()
 
+# Used in //runtimes/<runtime>/BUILD files
+# Creates the cc_args specific to the various configurations
+# example output:
+# cc_args(
+#     name = "link_actions",
+#     actions = [
+#         "@rules_cc//cc/toolchains/actions:link_actions",
+#     ],
+#     args = select({
+#         ":musl-shared": [
+#             "-L{lib}",
+#             "-fuse-ld=lld",
+#             "-lc",
+#         ],
+#         ":musl-static": [
+#             "-fuse-ld=lld",
+#             "{lib}/libc.a",
+#         ],
+#     }),
+#     data = [
+#         ":lib",
+#     ],
+#     format = {
+#         "lib": ":lib",
+#     },
+# )
 def create_configuration_args(row):
     if "configurations" not in row:
         return ""
@@ -395,27 +421,26 @@ def create_configuration_args(row):
     name = row["name"]
     for config_item in row["configurations"]:
         config = config_item["name"]
-
         for action_item in config_item["actions"]:
             action = action_item["name"]
-            link_args = ""
-            link_args += f"            \":{name}-{config}\": [\n"
+            args = ""
+            args += f"        \":{name}-{config}\": [\n"
             for arg in action_item["args"]:
-                link_args += f"                \"{arg}\",\n"
-            link_args += "            ],\n"
+                args += f"            \"{arg}\",\n"
+            args += "        ],\n"
 
             if action not in action_to_args:
                 action_to_args[action] = ""
-            action_to_args[action] += link_args
+            action_to_args[action] += args
 
-    args = ""
-    for action, link_args in action_to_args.items():
-        args += cc_arg_tpl.format(
+    cc_args = ""
+    for action, args in action_to_args.items():
+        cc_args += cc_arg_tpl.format(
             action=action,
-            args=link_args.strip()
+            args=args.strip()
         )
 
-    return args
+    return cc_args
 
 def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
