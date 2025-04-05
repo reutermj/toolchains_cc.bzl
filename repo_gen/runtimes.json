@@ -20,48 +20,50 @@
             }
         ],
         "default-configuration": "shared",
-        "configurations": [
-            {
-                "name": "shared",
-                "actions": [
-                    {
-                        "name": "link_actions",
-                        "args": [
-                            "-L{lib}",
-                            "-fuse-ld=lld",
-                            "-lc"
-                        ]
-                    },
-                    {
-                        "name": "link_executable_actions",
-                        "args": [
-                            "{lib}/crt1.o",
-                            "{lib}/crti.o",
-                            "{lib}/crtn.o"
-                        ]
-                    }
-                ]
-            },
-            {
-                "name": "static",
-                "actions": [
-                    {
-                        "name": "link_actions",
-                        "args": [
-                            "-fuse-ld=lld",
-                            "{lib}/libc.a"
-                        ]
-                    },
-                    {
-                        "name": "link_executable_actions",
-                        "args": [
-                            "{lib}/crt1.o",
-                            "{lib}/crti.o",
-                            "{lib}/crtn.o"
-                        ]
-                    }
-                ]
-            }
-        ]
+        "configurations": {
+            "all": [
+                {
+                    "name": "shared",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-fuse-ld=lld",
+                                "-lc"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "{lib}/crt1.o",
+                                "{lib}/crti.o",
+                                "{lib}/crtn.o"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "static",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-fuse-ld=lld",
+                                "{lib}/libc.a"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "{lib}/crt1.o",
+                                "{lib}/crti.o",
+                                "{lib}/crtn.o"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]

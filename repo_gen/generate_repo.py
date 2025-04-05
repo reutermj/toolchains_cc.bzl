@@ -152,7 +152,7 @@ def create_latest(row, dir):
     
     settings = ""
     configs = []
-    for config_item in row["configurations"]:
+    for config_item in row["configurations"]["all"]:
         config = config_item["name"]
         config_name = f"{name}-{config}-latest"
         configs.append(config_name)
@@ -175,7 +175,7 @@ def create_latest_with_configurations(row, dir):
     default_config = row["default-configuration"]
 
     settings = ""
-    for config_item in row["configurations"]:
+    for config_item in row["configurations"]["all"]:
         config = config_item["name"]
         config_name = f"{name}-{config}-latest"
         if config == default_config:
@@ -200,7 +200,7 @@ def create_version(row):
         version = version_item["version"]
         if "configurations" in row:
             configs = []
-            for config_item in row["configurations"]:
+            for config_item in row["configurations"]["all"]:
                 config = config_item["name"]
                 config_name = f"{name}-{config}-{version}"
                 configs.append(config_name)
@@ -234,7 +234,7 @@ def create_version_with_configurations(row, dir):
     for version_item in row["versions"]:
         version = version_item["version"]
         default_config = row["default-configuration"]
-        for config_item in row["configurations"]:
+        for config_item in row["configurations"]["all"]:
             config = config_item["name"]
             config_name = f"{name}-{config}-{version}"
             if config == default_config:
@@ -258,7 +258,7 @@ def create_version_configs(row):
     
     name = row["name"]
     settings = ""
-    for config_item in row["configurations"]:
+    for config_item in row["configurations"]["all"]:
         config = config_item["name"]
         versions = create_single_label(f":{name}-{config}-latest", 8)
         for version_item in row["versions"]:
@@ -419,7 +419,7 @@ def create_configuration_args(row):
     action_to_args = {}
     
     name = row["name"]
-    for config_item in row["configurations"]:
+    for config_item in row["configurations"]["all"]:
         config = config_item["name"]
         for action_item in config_item["actions"]:
             action = action_item["name"]
