@@ -18,6 +18,43 @@
                     }
                 ]
             }
-        ]
+        ],
+        "configurations": {
+            "os": [
+                {
+                    "name": "linux",
+                    "actions": [
+                        {
+                            "name": "c_compile",
+                            "args": [
+                                "-nostdinc",
+                                "-nostdlib",
+                                "-nodefaultlibs"
+                            ]
+                        },
+                        {
+                            "name": "cpp_compile_actions",
+                            "args": [
+                                "-nostdinc",
+                                "-nostdlib",
+                                "-nodefaultlibs",
+                                "-nostdinc++",
+                                "-nostdlib++"
+                            ]
+                        },
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-nostdinc",
+                                "-nostdlib",
+                                "-nodefaultlibs",
+                                "-nostdinc++",
+                                "-nostdlib++"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]

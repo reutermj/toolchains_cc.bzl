@@ -94,6 +94,19 @@ cc_args(
 
 """.lstrip()
 
+cc_arg_os_tpl = """
+cc_args(
+    name = "llvm-{action}",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:{action}",
+    ],
+    args = select({{
+        {args}
+    }}),
+)
+
+""".lstrip()
+
 # ==================
 # || MODULE.bazel ||
 # ==================
@@ -143,7 +156,7 @@ def generate_module():
 def create_latest(row, dir):
     name = row["name"]
 
-    if "configurations" not in row:
+    if "configurations" not in row or "all" not in row["configurations"]:
         return config_setting_tpl.format(
             name=f"{name}-latest",
             value=f"{name}",
@@ -169,6 +182,9 @@ def create_latest(row, dir):
 
 def create_latest_with_configurations(row, dir):
     if "configurations" not in row:
+        return ""
+    
+    if "all" not in row["configurations"]:
         return ""
     
     name = row["name"]
@@ -198,7 +214,7 @@ def create_version(row):
     settings = ""
     for version_item in row["versions"]:
         version = version_item["version"]
-        if "configurations" in row:
+        if "configurations" in row and "all" in row["configurations"]:
             configs = []
             for config_item in row["configurations"]["all"]:
                 config = config_item["name"]
@@ -219,7 +235,7 @@ def create_version(row):
 def create_version_with_configurations(row, dir):
     name = row["name"]
 
-    if "configurations" not in row:
+    if "configurations" not in row or "all" not in row["configurations"]:
         settings = ""
         for version_item in row["versions"]:
             version = version_item["version"]
@@ -254,6 +270,9 @@ def create_version_with_configurations(row, dir):
 # this does way too much and should probably be broken up
 def create_version_configs(row):
     if "configurations" not in row:
+        return ""
+    
+    if "all" not in row["configurations"]:
         return ""
     
     name = row["name"]
@@ -415,6 +434,9 @@ def create_platform_aliases(name, version_item, actions):
 def create_configuration_args(row):
     if "configurations" not in row:
         return ""
+    
+    if "all" not in row["configurations"]:
+        return ""
 
     action_to_args = {}
     
@@ -442,6 +464,39 @@ def create_configuration_args(row):
 
     return cc_args
 
+def create_os_configuration_args(row):
+    if "configurations" not in row:
+        return ""
+    
+    if "os" not in row["configurations"]:
+        return ""
+
+    action_to_args = {}
+    
+    name = row["name"]
+    for config_item in row["configurations"]["os"]:
+        config = config_item["name"]
+        for action_item in config_item["actions"]:
+            action = action_item["name"]
+            args = ""
+            args += f"        \"@platforms//os:{config}\": [\n"
+            for arg in action_item["args"]:
+                args += f"            \"{arg}\",\n"
+            args += "        ],\n"
+
+            if action not in action_to_args:
+                action_to_args[action] = ""
+            action_to_args[action] += args
+
+    cc_args = ""
+    for action, args in action_to_args.items():
+        cc_args += cc_arg_os_tpl.format(
+            action=action,
+            args=args.strip()
+        )
+
+    return cc_args
+
 def generate_build_files(dir, actions):
     with open(f'repo_gen/{dir}/BUILD.tpl', 'r') as file:
         build_tpl = file.read()
@@ -454,6 +509,7 @@ def generate_build_files(dir, actions):
         with open(f"{dir}/{name}/BUILD", 'w') as file:
             build = build_tpl.format(name = name)
             build += create_configuration_args(config)
+            build += create_os_configuration_args(config)
             build += create_version_aliases(config, dir, actions)
             build += create_top_level_config_settings_group(config)
             build += create_version_configs(config)

@@ -1,5 +1,14 @@
+load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
 load("@rules_cc//cc/toolchains:tool.bzl", "cc_tool")
 load("@rules_cc//cc/toolchains:tool_map.bzl", "cc_tool_map")
+
+cc_args_list(
+    name = "args",
+    args = [
+        "//toolchain/llvm:args",
+    ],
+    visibility = ["//:__pkg__"],
+)
 
 cc_tool_map(
     name = "all_tools",
