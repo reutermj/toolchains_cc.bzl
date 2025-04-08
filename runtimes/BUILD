@@ -10,6 +10,7 @@ load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
 cc_args_list(
     name = "args",
     args = [
+        "//runtimes/libcxx:args",
         "//runtimes/musl:args",
     ],
     visibility = ["//:__pkg__"],

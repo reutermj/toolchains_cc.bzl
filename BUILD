@@ -27,6 +27,9 @@ string_flag(
 
 string_list_flag(
     name = "use_runtimes",
-    build_setting_default = ["musl"],
+    build_setting_default = [
+        "musl",
+        "libcxx",
+    ],
     visibility = ["//visibility:public"],
 )

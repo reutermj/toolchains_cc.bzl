@@ -65,5 +65,72 @@
                 }
             ]
         }
+    },
+    {
+        "name": "libcxx",
+        "default-version": "19.1.7",
+        "versions": [
+            {
+                "version": "19.1.7",
+                "oses": [
+                    {
+                        "name": "linux",
+                        "archs": [
+                            {
+                                "name": "x86_64",
+                                "artifact-name": "libcxx-19.1.7-linux-x86_64.tar.xz",
+                                "sha256": "6d144468b2b8d0d0a9a50a4aacffaf5ed02d813009dbcbfb5d3c66856a5c9de9"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "default-configuration": "shared",
+        "configurations": {
+            "all": [
+                {
+                    "name": "shared",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-lc++",
+                                "-lc++abi",
+                                "-lunwind",
+                                "-llzma"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "static",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "{lib}/libc++.a",
+                                "{lib}/libc++abi.a",
+                                "{lib}/libunwind.a",
+                                "{lib}/liblzma.a"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]

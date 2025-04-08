@@ -20,3 +20,8 @@ http_archive(
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
 )
+http_archive(
+    name = "libcxx-19.1.7-linux-x86_64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/libcxx-19.1.7-linux-x86_64.tar.xz",
+    sha256 = "6d144468b2b8d0d0a9a50a4aacffaf5ed02d813009dbcbfb5d3c66856a5c9de9",
+)
