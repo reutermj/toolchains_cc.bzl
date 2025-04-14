@@ -1,4 +1,3 @@
-load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
 
 # for cc_args, you need to set both the data and format fields
@@ -11,6 +10,7 @@ cc_args_list(
     name = "args",
     args = [
         "//runtimes/libcxx:args",
+        "//runtimes/glibc:args",
         "//runtimes/musl:args",
     ],
     visibility = ["//:__pkg__"],

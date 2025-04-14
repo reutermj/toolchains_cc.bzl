@@ -12,7 +12,7 @@
                             {
                                 "name": "x86_64",
                                 "artifact-name": "llvm-19.1.7-linux-x86_64.tar.xz",
-                                "sha256": "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3"
+                                "sha256": "2dc7c2d6804eb5cd139f63e03f9e9c1c7ccef2494f71d71995758f5ea58e70c1"
                             }
                         ]
                     }

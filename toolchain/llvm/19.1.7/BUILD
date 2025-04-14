@@ -55,3 +55,10 @@ alias(
         "//constraint:linux_x86_64": "@llvm-19.1.7-linux-x86_64//:strip",
     }),
 )
+
+alias(
+    name = "include",
+    actual = select({
+        "//constraint:linux_x86_64": "@llvm-19.1.7-linux-x86_64//:include",
+    }),
+)

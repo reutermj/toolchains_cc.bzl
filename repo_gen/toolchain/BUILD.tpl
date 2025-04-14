@@ -12,9 +12,28 @@ cc_args_list(
                 ":llvm-c_compile",
                 ":llvm-cpp_compile_actions",
                 ":llvm-link_actions",
+                ":arg-include",
             ],
             "//conditions:default": [],
         }}),
     visibility = ["//toolchain:__pkg__"],
+)
+
+cc_args(
+    name = "arg-include",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+    ],
+    args = [
+        "-isystem",
+        "{{include}}",
+    ],
+    data = [
+        ":include",
+    ],
+    format = {{
+        "include": ":include",
+    }},
 )
 

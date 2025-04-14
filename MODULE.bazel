@@ -13,12 +13,17 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 http_archive(
     name = "llvm-19.1.7-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
-    sha256 = "ac027eb9f1cde6364d063fe91bd299937eb03b8d906f7ddde639cf65b4872cb3",
+    sha256 = "2dc7c2d6804eb5cd139f63e03f9e9c1c7ccef2494f71d71995758f5ea58e70c1",
 )
 http_archive(
     name = "musl-1.2.5-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
+)
+http_archive(
+    name = "glibc-2.27-linux-x86_64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/glibc-2.27-linux-x86_64.tar.xz",
+    sha256 = "94c2e1cf2396b87b4f714995a8c5d2b8f6744219cadb0b81df486092e97b17e4",
 )
 http_archive(
     name = "libcxx-19.1.7-linux-x86_64",

@@ -1,1 +1,2 @@
 bazel-*
+examples/hello_world/MODULE.bazel.lock

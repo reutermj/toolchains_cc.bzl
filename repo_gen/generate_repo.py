@@ -545,4 +545,5 @@ if __name__ == "__main__":
         "link_data",
         "objcopy_embed_data",
         "strip",
+        "include",
     ])

@@ -67,6 +67,74 @@
         }
     },
     {
+        "name": "glibc",
+        "default-version": "2.27",
+        "versions": [
+            {
+                "version": "2.27",
+                "oses": [
+                    {
+                        "name": "linux",
+                        "archs": [
+                            {
+                                "name": "x86_64",
+                                "artifact-name": "glibc-2.27-linux-x86_64.tar.xz",
+                                "sha256": "94c2e1cf2396b87b4f714995a8c5d2b8f6744219cadb0b81df486092e97b17e4"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "default-configuration": "shared",
+        "configurations": {
+            "all": [
+                {
+                    "name": "shared",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-fuse-ld=lld",
+                                "-lc",
+                                "{lib}/libc_nonshared.a"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "{lib}/crt1.o",
+                                "{lib}/crti.o",
+                                "{lib}/crtn.o"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "static",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-fuse-ld=lld",
+                                "{lib}/libc.a",
+                                "{lib}/libc_nonshared.a"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "{lib}/crt1.o",
+                                "{lib}/crti.o",
+                                "{lib}/crtn.o"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
         "name": "libcxx",
         "default-version": "19.1.7",
         "versions": [
