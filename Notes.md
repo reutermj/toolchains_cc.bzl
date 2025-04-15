@@ -69,3 +69,33 @@ Looks like it's c++, then toolchain, then c headers...
  /usr/include/x86_64-linux-gnu
  /usr/include
 ```
+
+### glibc include path ordering errors
+
+glibc really cares about the toolchain headers being above the glibc headers. 
+otherwise, you'll get errors complaining about not finding `size_t`.
+note the incorrect include path ordering:
+
+```
+#include <...> search starts here:
+ external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include
+ external/toolchains_cc++_repo_rules+llvm-19.1.7-linux-x86_64/include
+End of search list.
+In file included from main.c:1:
+In file included from external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/stdio.h:41:
+external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/bits/libio.h:306:3: error: unknown type name 'size_t'
+  306 |   size_t __pad5;
+      |   ^
+external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/bits/libio.h:309:67: error: use of undeclared identifier 'size_t'; did you mean 'sizeof'?
+  309 |   char _unused2[15 * sizeof (int) - 4 * sizeof (void *) - sizeof (size_t)];
+      |                                                                   ^
+external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/bits/libio.h:309:66: error: reference to overloaded function could not be resolved; did you mean to call it?
+  309 |   char _unused2[15 * sizeof (int) - 4 * sizeof (void *) - sizeof (size_t)];
+      |                                                                  ^~~~~~~~
+external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/bits/libio.h:337:62: error: unknown type name 'size_t'
+  337 | typedef __ssize_t __io_read_fn (void *__cookie, char *__buf, size_t __nbytes);
+      |                                                              ^
+external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/bits/libio.h:346:6: error: unknown type name 'size_t'
+  346 |                                  size_t __n);
+      |                                  ^
+```
