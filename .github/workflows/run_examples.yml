@@ -20,3 +20,6 @@ jobs:
       run: |
         cd examples/hello_world
         bazel build //...
+
+        bazel build --@toolchains_cc//:use_runtimes=musl-static,libcxx-static --copt="-v" :hello
+        bazel build --@toolchains_cc//:use_runtimes=glibc --copt="-v" :hello

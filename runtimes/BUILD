@@ -14,8 +14,8 @@ cc_args_list(
         # 2. toolchain args
         # 3. c args
         "//runtimes/libcxx:args",
-        "//runtimes/glibc:args",
         "//toolchain:args",
+        "//runtimes/glibc:args",
         "//runtimes/musl:args",
     ],
     visibility = ["//:__pkg__"],
