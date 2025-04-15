@@ -7,7 +7,7 @@ cc_args_list(
     args = [
         "//toolchain/llvm:args",
     ],
-    visibility = ["//:__pkg__"],
+    visibility = ["//:__subpackages__"],
 )
 
 cc_tool_map(

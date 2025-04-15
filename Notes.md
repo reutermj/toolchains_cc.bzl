@@ -38,3 +38,34 @@ figure out why I need to link lzma? I dont think I actually want this to be part
 toolchains contain specific definitions for things like `stddef.h`. glibc relies on these to be there but it appears that musl doesnt?
 
 either way, need to look into include path ordering to make sure im getting it in the right order.
+
+
+## Include path ordering
+
+Looks like it's c++, then toolchain, then c headers...
+
+`g++ -v` gives
+
+```
+#include <...> search starts here:
+ /usr/include/c++/12
+ /usr/include/x86_64-linux-gnu/c++/12
+ /usr/include/c++/12/backward
+ /usr/lib/gcc/x86_64-linux-gnu/12/include
+ /usr/local/include
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+```
+
+`clang++ -v` gives
+
+```
+#include <...> search starts here:
+ /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12
+ /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12
+ /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/backward
+ /usr/lib/llvm-14/lib/clang/14.0.6/include
+ /usr/local/include
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+```

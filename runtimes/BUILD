@@ -9,8 +9,13 @@ load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
 cc_args_list(
     name = "args",
     args = [
+        # ordering is important:
+        # 1. c++ args
+        # 2. toolchain args
+        # 3. c args
         "//runtimes/libcxx:args",
         "//runtimes/glibc:args",
+        "//toolchain:args",
         "//runtimes/musl:args",
     ],
     visibility = ["//:__pkg__"],
