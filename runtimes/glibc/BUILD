@@ -104,16 +104,16 @@ cc_args(
 alias(
     name = "include",
     actual = select({
-        ":glibc-latest": "//runtimes/glibc/2.27:include",
-        ":glibc-2.27": "//runtimes/glibc/2.27:include",
+        ":glibc-latest": "//runtimes/glibc/2.31:include",
+        ":glibc-2.31": "//runtimes/glibc/2.31:include",
     }),
 )
 
 alias(
     name = "lib",
     actual = select({
-        ":glibc-latest": "//runtimes/glibc/2.27:lib",
-        ":glibc-2.27": "//runtimes/glibc/2.27:lib",
+        ":glibc-latest": "//runtimes/glibc/2.31:lib",
+        ":glibc-2.31": "//runtimes/glibc/2.31:lib",
     }),
 )
 
@@ -121,7 +121,7 @@ selects.config_setting_group(
     name = "glibc",
     match_any = [
         ":glibc-latest",
-        ":glibc-2.27",
+        ":glibc-2.31",
     ],
 )
 
@@ -129,7 +129,7 @@ selects.config_setting_group(
     name = "glibc-shared",
     match_any = [
         ":glibc-shared-latest",
-        ":glibc-shared-2.27",
+        ":glibc-shared-2.31",
     ],
 )
 
@@ -137,7 +137,7 @@ selects.config_setting_group(
     name = "glibc-static",
     match_any = [
         ":glibc-static-latest",
-        ":glibc-static-2.27",
+        ":glibc-static-2.31",
     ],
 )
 
@@ -164,23 +164,23 @@ config_setting(
 )
 
 selects.config_setting_group(
-    name = "glibc-2.27",
+    name = "glibc-2.31",
     match_any = [
-        ":glibc-shared-2.27",
-        ":glibc-static-2.27",
+        ":glibc-shared-2.31",
+        ":glibc-static-2.31",
     ],
 )
 
 config_setting(
-    name = "glibc-shared-2.27",
+    name = "glibc-shared-2.31",
     flag_values = {
-        "//:use_runtimes": "glibc-2.27",
+        "//:use_runtimes": "glibc-2.31",
     },
 )
 
 config_setting(
-    name = "glibc-static-2.27",
+    name = "glibc-static-2.31",
     flag_values = {
-        "//:use_runtimes": "glibc-static-2.27",
+        "//:use_runtimes": "glibc-static-2.31",
     },
 )

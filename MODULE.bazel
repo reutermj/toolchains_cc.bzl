@@ -21,9 +21,9 @@ http_archive(
     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
 )
 http_archive(
-    name = "glibc-2.27-linux-x86_64",
-    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/glibc-2.27-linux-x86_64.tar.xz",
-    sha256 = "94c2e1cf2396b87b4f714995a8c5d2b8f6744219cadb0b81df486092e97b17e4",
+    name = "glibc-2.31-linux-x86_64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/glibc-2.31-linux-x86_64.tar.xz",
+    sha256 = "bd7c3ef414caaca260fb0a00aa5942954726a906594321b18395fa1fd3bfcc4f",
 )
 http_archive(
     name = "libcxx-19.1.7-linux-x86_64",
