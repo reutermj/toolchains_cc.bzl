@@ -12,6 +12,22 @@ Build scripts: https://gitlab.alpinelinux.org/alpine/aports
 `platform_data` might allow for changing the toolchain for different targets. need to investigate
 
 https://github.com/bazelbuild/rules_platform/blob/main/platform_data/defs.bzl
+## linux-libc-dev
+TODO currently having to manually remove the link args because the template always includes them
+
+
+## glibc
+
+glibc headers depend on linux headers. musl copy pastes the constants into the header
+
+```
+external/toolchains_cc++_repo_rules+glibc-2.31-linux-x86_64/include/bits/errno.h:26:11: fatal error: 'linux/errno.h' file not found
+   26 | # include <linux/errno.h>
+```
+
+## libstdc++
+
+the .so in the ubuntu package is a symlink and clang will be *so* helpful and just link the static lib when it cant find the target
 
 ## libc++
 

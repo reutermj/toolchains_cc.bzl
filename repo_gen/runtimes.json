@@ -200,5 +200,87 @@
                 }
             ]
         }
+    },
+    {
+        "name": "libstdcxx",
+        "default-version": "10.5.0",
+        "versions": [
+            {
+                "version": "10.5.0",
+                "oses": [
+                    {
+                        "name": "linux",
+                        "archs": [
+                            {
+                                "name": "x86_64",
+                                "artifact-name": "libstdcxx-10.5.0-linux-x86_64.tar.xz",
+                                "sha256": "d8f6ebbd7170107c461d6d751705c94993cbaf64f02f7cc2ea689b032db2e959"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "default-configuration": "shared",
+        "configurations": {
+            "all": [
+                {
+                    "name": "shared",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-lstdc++"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "static",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "{lib}/libstdc++.a"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "name": "linux-libc-dev",
+        "default-version": "5.4.0",
+        "versions": [
+            {
+                "version": "5.4.0",
+                "oses": [
+                    {
+                        "name": "linux",
+                        "archs": [
+                            {
+                                "name": "x86_64",
+                                "artifact-name": "linux-libc-dev-5.4.0-212.232-linux-x86_64.tar.xz",
+                                "sha256": "3e0ea55c4ee2fa0a82f8ceda182955a3b5bb9605ace7ed04eb2f69279885894e"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
     }
 ]

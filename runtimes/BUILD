@@ -14,9 +14,11 @@ cc_args_list(
         # 2. toolchain args
         # 3. c args
         "//runtimes/libcxx:args",
+        "//runtimes/libstdcxx:args",
         "//toolchain:args",
         "//runtimes/glibc:args",
         "//runtimes/musl:args",
+        "//runtimes/linux-libc-dev:args",
     ],
     visibility = ["//:__pkg__"],
 )

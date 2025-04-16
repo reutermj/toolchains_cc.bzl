@@ -30,3 +30,13 @@ http_archive(
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/libcxx-19.1.7-linux-x86_64.tar.xz",
     sha256 = "6d144468b2b8d0d0a9a50a4aacffaf5ed02d813009dbcbfb5d3c66856a5c9de9",
 )
+http_archive(
+    name = "libstdcxx-10.5.0-linux-x86_64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/libstdcxx-10.5.0-linux-x86_64.tar.xz",
+    sha256 = "d8f6ebbd7170107c461d6d751705c94993cbaf64f02f7cc2ea689b032db2e959",
+)
+http_archive(
+    name = "linux-libc-dev-5.4.0-linux-x86_64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/linux-libc-dev-5.4.0-212.232-linux-x86_64.tar.xz",
+    sha256 = "3e0ea55c4ee2fa0a82f8ceda182955a3b5bb9605ace7ed04eb2f69279885894e",
+)
