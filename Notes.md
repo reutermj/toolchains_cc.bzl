@@ -147,7 +147,10 @@ to
 then build with
 
 ```
-../gcc/configure --prefix=/home/mark/gcc-14.2 --enable-languages=c,c++ --disable-multilib --with-static-standard-libraries
+../gcc/configure --prefix=/home/mark/gcc-14.2 --enable-languages=c,c++ --disable-multilib --with-static-standard-libraries --disable-bootstrap
 make -j $(nproc)
 make install
 ```
+
+this disables the full 3 phase bootstrapping because it seems to only statically link the first phase of the bootstrap and the others are dynamically linked.
+im assuming more changes need to be made to the configure to get the full bootstrap statically linked
