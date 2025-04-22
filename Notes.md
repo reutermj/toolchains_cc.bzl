@@ -115,3 +115,39 @@ external/toolchains_cc++_repo_rules+glibc-2.27-linux-x86_64/include/bits/libio.h
   346 |                                  size_t __n);
       |                                  ^
 ```
+
+## GCC
+
+### building
+
+to get a fully statically linked gcc, change in `configure`:
+
+```
+ # In stage 1, default to linking libstdc++ and libgcc statically with GCC
+ # if supported.  But if the user explicitly specified the libraries to use,
+ # trust that they are doing what they want.
+ if test "$with_static_standard_libraries" = yes -a "$stage1_libs" = "" \
+     -a "$have_static_libs" = yes; then
+   stage1_ldflags="-static-libstdc++ -static-libgcc"
+ fi
+```
+
+to
+
+```
+ # In stage 1, default to linking libstdc++ and libgcc statically with GCC
+ # if supported.  But if the user explicitly specified the libraries to use,
+ # trust that they are doing what they want.
+ if test "$with_static_standard_libraries" = yes -a "$stage1_libs" = "" \
+     -a "$have_static_libs" = yes; then
+   stage1_ldflags="-static"
+ fi
+```
+
+then build with
+
+```
+../gcc/configure --prefix=/home/mark/gcc-14.2 --enable-languages=c,c++ --disable-multilib --with-static-standard-libraries
+make -j $(nproc)
+make install
+```
