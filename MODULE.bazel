@@ -16,6 +16,11 @@ http_archive(
     sha256 = "2dc7c2d6804eb5cd139f63e03f9e9c1c7ccef2494f71d71995758f5ea58e70c1",
 )
 http_archive(
+    name = "llvm-19.1.7-windows-aarch64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/llvm-19.1.7-windows-aarch64.tar.xz",
+    sha256 = "b4f84ae2d3d209254ba4ec6ab5296da4baf100ae861481c9f784b60d0c9ed04e",
+)
+http_archive(
     name = "musl-1.2.5-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/musl-1.2.5-r10-linux-x86_64.tar.xz",
     sha256 = "5c2ba292f20013f34f6553000171f488c38bcd497472fd0586d2374c447423ff",
@@ -39,4 +44,14 @@ http_archive(
     name = "linux-libc-dev-5.4.0-linux-x86_64",
     url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/linux-libc-dev-5.4.0-212.232-linux-x86_64.tar.xz",
     sha256 = "3e0ea55c4ee2fa0a82f8ceda182955a3b5bb9605ace7ed04eb2f69279885894e",
+)
+http_archive(
+    name = "ucrt-10.0.22621.0-windows-aarch64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/ucrt-10.0.22621.0-windows-aarch64.tar.xz",
+    sha256 = "119a5b134a803ddb83e4b38709117898b49bdea402d0b308a641de6bf6683afd",
+)
+http_archive(
+    name = "msvc-14.43.34808-windows-aarch64",
+    url = "https://github.com/reutermj/toolchains_cc/releases/download/binaries/msvc-14.43.34808-windows-aarch64.tar.xz",
+    sha256 = "84a503ad3721bf95e2b9618b3e5f7fb722537efc86f65bf93e60257cd70e1aa6",
 )

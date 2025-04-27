@@ -282,5 +282,135 @@
                 ]
             }
         ]
+    },
+    {
+        "name": "ucrt",
+        "default-version": "10.0.22621.0",
+        "versions": [
+            {
+                "version": "10.0.22621.0",
+                "oses": [
+                    {
+                        "name": "windows",
+                        "archs": [
+                            {
+                                "name": "aarch64",
+                                "artifact-name": "ucrt-10.0.22621.0-windows-aarch64.tar.xz",
+                                "sha256": "119a5b134a803ddb83e4b38709117898b49bdea402d0b308a641de6bf6683afd"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "default-configuration": "shared",
+        "configurations": {
+            "all": [
+                {
+                    "name": "shared",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-fuse-ld=lld",
+                                "-llibucrt"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "static",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-fuse-ld=lld",
+                                "-llibucrt"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "name": "msvc",
+        "default-version": "14.43.34808",
+        "versions": [
+            {
+                "version": "14.43.34808",
+                "oses": [
+                    {
+                        "name": "windows",
+                        "archs": [
+                            {
+                                "name": "aarch64",
+                                "artifact-name": "msvc-14.43.34808-windows-aarch64.tar.xz",
+                                "sha256": "84a503ad3721bf95e2b9618b3e5f7fb722537efc86f65bf93e60257cd70e1aa6"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "default-configuration": "shared",
+        "configurations": {
+            "all": [
+                {
+                    "name": "shared",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-llibcmt",
+                                "-llibcpmt",
+                                "-loldnames"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "static",
+                    "actions": [
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-L{lib}",
+                                "-llibcmt",
+                                "-llibcpmt",
+                                "-loldnames"
+                            ]
+                        },
+                        {
+                            "name": "link_executable_actions",
+                            "args": [
+                                "-L{lib}"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
     }
 ]

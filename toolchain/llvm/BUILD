@@ -48,6 +48,13 @@ cc_args(
             "-nostdlib",
             "-nodefaultlibs",
         ],
+        "@platforms//os:windows": [
+            "-nostdinc",
+            "-nostdlib",
+            "-nodefaultlibs",
+            "-nostdinc++",
+            "-nostdlib++",
+        ],
     }),
 )
 
@@ -64,6 +71,13 @@ cc_args(
             "-nostdinc++",
             "-nostdlib++",
         ],
+        "@platforms//os:windows": [
+            "-nostdinc",
+            "-nostdlib",
+            "-nodefaultlibs",
+            "-nostdinc++",
+            "-nostdlib++",
+        ],
     }),
 )
 
@@ -74,6 +88,13 @@ cc_args(
     ],
     args = select({
         "@platforms//os:linux": [
+            "-nostdinc",
+            "-nostdlib",
+            "-nodefaultlibs",
+            "-nostdinc++",
+            "-nostdlib++",
+        ],
+        "@platforms//os:windows": [
             "-nostdinc",
             "-nostdlib",
             "-nodefaultlibs",

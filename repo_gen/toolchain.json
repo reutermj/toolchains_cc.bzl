@@ -15,6 +15,16 @@
                                 "sha256": "2dc7c2d6804eb5cd139f63e03f9e9c1c7ccef2494f71d71995758f5ea58e70c1"
                             }
                         ]
+                    },
+                    {
+                        "name": "windows",
+                        "archs": [
+                            {
+                                "name": "aarch64",
+                                "artifact-name": "llvm-19.1.7-windows-aarch64.tar.xz",
+                                "sha256": "b4f84ae2d3d209254ba4ec6ab5296da4baf100ae861481c9f784b60d0c9ed04e"
+                            }
+                        ]
                     }
                 ]
             }
@@ -30,6 +40,41 @@
                                 "-nostdinc",
                                 "-nostdlib",
                                 "-nodefaultlibs"
+                            ]
+                        },
+                        {
+                            "name": "cpp_compile_actions",
+                            "args": [
+                                "-nostdinc",
+                                "-nostdlib",
+                                "-nodefaultlibs",
+                                "-nostdinc++",
+                                "-nostdlib++"
+                            ]
+                        },
+                        {
+                            "name": "link_actions",
+                            "args": [
+                                "-nostdinc",
+                                "-nostdlib",
+                                "-nodefaultlibs",
+                                "-nostdinc++",
+                                "-nostdlib++"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "windows",
+                    "actions": [
+                        {
+                            "name": "c_compile",
+                            "args": [
+                                "-nostdinc",
+                                "-nostdlib",
+                                "-nodefaultlibs",
+                                "-nostdinc++",
+                                "-nostdlib++"
                             ]
                         },
                         {
