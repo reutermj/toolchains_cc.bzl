@@ -25,15 +25,10 @@ jobs:
         bazel build --@toolchains_cc//:use_runtimes=glibc,libstdcxx,linux-libc-dev //...
 
   run-aarch64-windows:
-    runs-on: windows-latest
+    runs-on: windows-latest-arm
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Set up Bazel
-      uses: bazelbuild/setup-bazel@v4
-      with:
-        bazel-version: 6.0.0
 
     - name: Run Bazel on aarch64
       run: |
