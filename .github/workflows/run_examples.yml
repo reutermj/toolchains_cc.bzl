@@ -25,7 +25,7 @@ jobs:
         bazel build --@toolchains_cc//:use_runtimes=glibc,libstdcxx,linux-libc-dev //...
 
   run-aarch64-windows:
-    runs-on: windows-latest-arm
+    runs-on: windows-11-arm
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
