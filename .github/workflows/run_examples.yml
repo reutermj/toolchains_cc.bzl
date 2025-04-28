@@ -33,4 +33,4 @@ jobs:
     - name: Run Bazel on aarch64
       run: |
         cd examples/hello_world
-        bazel run --@toolchains_cc//:use_runtimes=ucrt-static,msvc-static :hello
+        bazel build --copt="-v" --linkopt="-v" --@toolchains_cc//:use_runtimes=ucrt-static,msvc-static :hello
