@@ -1,5 +1,7 @@
 # toolchains_cc
 
+Aspirational readme:
+
 Your one stop shop for default, hermetic c/c++ toolchains in Bazel!
 
 This package:
