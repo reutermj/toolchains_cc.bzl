@@ -12,9 +12,23 @@ cc_args_list(
                 ":link_actions",
                 ":link_executable_actions",
             ],
-            "//conditions:default": [],
+            "//conditions:default": [
+                ":no-op"
+            ],
         }),
     visibility = ["//runtimes:__pkg__"],
+)
+
+cc_args(
+    name = "no-op",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+    ],
+    args = [
+        "-isystem",
+        "path/does/not/exist",
+    ],
 )
 
 cc_args(
