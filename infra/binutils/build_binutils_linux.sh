@@ -5,8 +5,8 @@ ROOT_DIR=$(pwd)
 
 sudo apk update
 sudo apk add git coreutils diffutils make \
-             gcc g++ bison flex texinfo gawk zip gmp-dev mpfr-dev mpc1-dev zlib-dev \
-             linux-headers gmp-dev mpfr-dev mpc1-dev isl-dev zlib-dev libucontext-dev
+             gcc g++ bison flex texinfo \
+             zlib-dev
 
 # ===============================
 # || Clone alpine package repo ||
@@ -17,28 +17,30 @@ git clone --depth 1 https://gitlab.alpinelinux.org/alpine/aports.git $APORTS
 # =================================
 # || Get GCC version from aports ||
 # =================================
-APORTS_GCC_DIR=$APORTS/main/gcc
-GCC_VERSION=$(cat $APORTS_GCC_DIR/APKBUILD | grep "pkgver=" | cut -d'=' -f2 | tr -d '[:space:]')
+APORTS_BINUTILS_DIR=$APORTS/main/binutils
+BINUTILS_VERSION=$(cat $APORTS_BINUTILS_DIR/APKBUILD | grep "pkgver=" | cut -d'=' -f2 | tr -d '[:space:]' | tr '.' '_')
 
 # ==============================
 # || Download GCC source code ||
 # ==============================
-GCC_DIR=$ROOT_DIR/gcc
-git clone --depth 1 --branch releases/gcc-$GCC_VERSION git://gcc.gnu.org/git/gcc.git $GCC_DIR
+BINUTILS_DIR=$ROOT_DIR/binutils
+git clone --branch binutils-$BINUTILS_VERSION --depth 1 git://sourceware.org/git/binutils-gdb.git $BINUTILS_DIR
 
 # ==================================================
 # || Apply patches from aports to GCC source code ||
 # ==================================================
-cp -v $APORTS_GCC_DIR/*.patch $GCC_DIR
+cp -v $APORTS_BINUTILS_DIR/*.patch $BINUTILS_DIR
 
-cd $GCC_DIR
+cd $BINUTILS_DIR
 for patch in *.patch; do
     # git apply --check $patch
     git apply $patch || /bin/true
 done
 
+sed -i 's/stage1_ldflags=\"-static-libstdc++ -static-libgcc\"/\stage1_ldflags="-static\"/g' configure
+
 mkdir build
 cd build
-../configure --prefix=/home/bazeler/gcc-out --enable-languages=c,c++ --disable-multilib --disable-bootstrap --with-stage1-ldflags="-static" --with-boot-ldflags="-static"
+../configure --prefix=/home/bazeler/binutils-out --disable-gdbserver --disable-gdb --disable-gprofng --disable-nls --disable-werror --disable-multilib --with-static-standard-libraries --disable-bootstrap
 make -j $(nproc)
 make install
