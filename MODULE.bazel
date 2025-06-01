@@ -1,5 +1,6 @@
 "Your one stop shop for hermetic c/c++ toolchains in Bazel!"
-module(name = "toolchains_cc")
+module(name = "toolchains_cc.bzl")
 
 bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.11")
