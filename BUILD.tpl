@@ -35,6 +35,7 @@ cc_toolchain(
         ":no-canonical-prefixes",
         ":sysroot-arg",
         ":use_llvm_linker",
+        ":use-libcxx",
     ],
     enabled_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
     known_features = ["@rules_cc//cc/toolchains/args:experimental_replace_legacy_action_config_features"],
@@ -65,6 +66,16 @@ cc_args(
         "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = ["-fuse-ld=lld"],
+)
+
+cc_args(
+    name = "use-libcxx",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = ["-stdlib=libc++"],
 )
 
 cc_args(
