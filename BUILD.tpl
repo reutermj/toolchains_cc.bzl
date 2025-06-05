@@ -33,6 +33,7 @@ cc_toolchain(
     name = "host_cc_toolchain",
     args = [
         ":no-canonical-prefixes",
+        ":target_triple",
         ":sysroot-arg",
         ":use_llvm_linker",
         ":cxx_std_lib",
@@ -75,6 +76,16 @@ cc_args(
         "@rules_cc//cc/toolchains/actions:link_actions",
     ],
     args = ["-stdlib=%{cxx_std_lib}"],
+)
+
+cc_args(
+    name = "target_triple",
+    actions = [
+        "@rules_cc//cc/toolchains/actions:c_compile_actions",
+        "@rules_cc//cc/toolchains/actions:cpp_compile_actions",
+        "@rules_cc//cc/toolchains/actions:link_actions",
+    ],
+    args = ["--target=%{target_triple}"],
 )
 
 cc_args(

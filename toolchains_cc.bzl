@@ -1,79 +1,25 @@
-def _extract_glibc(rctx):
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libc6_2.35-0ubuntu3.10_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libc6-dev_2.35-0ubuntu3.10_amd64.tar.xz",
-        output = "sysroot",
-    )
+load("//impl:alpine.bzl", "extract_alpine")
+load("//impl:ubuntu.bzl", "extract_ubuntu")
 
-def _extract_libgcc(rctx):
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libgcc-12-dev_12.3.0-1ubuntu1.22.04_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libgcc-s1_12.3.0-1ubuntu1.22.04_amd64.tar.xz",
-        output = "sysroot",
-    )
+def _cxx_toolchain(rctx):
+    """Implementation for the llvm_toolchain repository rule."""
+    if rctx.attr.vendor == "default" or rctx.attr.vendor == "ubuntu":
+        extract_ubuntu(rctx)
+        target_triple = "x86_64-unknown-linux-gnu"
+    elif rctx.attr.vendor == "alpine":
+        extract_alpine(rctx)
+        target_triple = "x86_64-alpine-linux-musl"
+    else:
+        fail("(toolchains_cc.bzl bug) Unknown vendor: %s" % rctx.attr.vendor)
 
-def _extract_libstdcxx(rctx):
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libstdc++-12-dev_12.3.0-1ubuntu1.22.04_amd64.tar.xz",
-        output = "sysroot",
-    )
-
-def _extract_libcxx(rctx):
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libc++-15-dev_15.0.7-0ubuntu0.22.04.3_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libc++1-15_15.0.7-0ubuntu0.22.04.3_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libc++abi-15-dev_15.0.7-0ubuntu0.22.04.3_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libc++abi1-15_15.0.7-0ubuntu0.22.04.3_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libunwind-15_15.0.7-0ubuntu0.22.04.3_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libunwind-15-dev_15.0.7-0ubuntu0.22.04.3_amd64.tar.xz",
-        output = "sysroot",
-    )
-
-def _extract_linux_sdk(rctx):
     rctx.download_and_extract(
         url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/llvm-19.1.7-linux-x86_64.tar.xz",
     )
 
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/linux-headers-5.15.0-140-generic_5.15.0-140.150_amd64.tar.xz",
-        output = "sysroot",
-    )
-    rctx.download_and_extract(
-        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/linux-libc-dev_5.15.0-140.150_amd64.tar.xz",
-        output = "sysroot",
-    )
-
-def _cxx_toolchain(rctx):
-    """Implementation for the llvm_toolchain repository rule."""
-    _extract_glibc(rctx)
-    _extract_libgcc(rctx)
-    _extract_linux_sdk(rctx)
-
-    if rctx.attr.cxx_std_lib == "libc++":
-        _extract_libcxx(rctx)
+    if rctx.attr.cxx_std_lib == "default" or rctx.attr.cxx_std_lib == "libc++":
+        cxx_std_lib = "libc++"
     elif rctx.attr.cxx_std_lib == "libstdc++":
-        _extract_libstdcxx(rctx)
+        cxx_std_lib = "libstdc++"
     else:
         fail("(toolchains_cc.bzl bug) Unknown C++ standard library: %s" % rctx.attr.cxx_std_lib)
 
@@ -82,21 +28,33 @@ def _cxx_toolchain(rctx):
         rctx.attr._build_tpl,
         substitutions = {
             "%{toolchain_name}": rctx.original_name,
-            "%{cxx_std_lib}": rctx.attr.cxx_std_lib,
+            "%{cxx_std_lib}": cxx_std_lib,
+            "%{target_triple}": target_triple,
         },
     )
 
 cxx_toolchain = repository_rule(
     implementation = _cxx_toolchain,
     attrs = {
+        "vendor": attr.string(
+            mandatory = False,
+            doc = "The vendor of the target platform. Also determines the libc.",
+            values = [
+                "default",
+                "ubuntu",
+                "alpine",
+            ],
+            default = "default",
+        ),
         "cxx_std_lib": attr.string(
             mandatory = False,
             doc = "The c++ standard library to use.",
             values = [
+                "default",
                 "libc++",
                 "libstdc++",
             ],
-            default = "libc++",
+            default = "default",
         ),
         "_build_tpl": attr.label(
             default = "//:BUILD.tpl",
