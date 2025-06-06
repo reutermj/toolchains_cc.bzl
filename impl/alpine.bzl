@@ -21,9 +21,12 @@ def _extract_libgcc(rctx):
     )
 
 def _extract_libstdcxx(rctx):
-    # TODO broken currently. unable to find iostream. the alpine package puts it in a directory that clang does not search.
     rctx.download_and_extract(
         url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libstdc++-14.2.0-r6.tar.xz",
+        output = "sysroot",
+    )
+    rctx.download_and_extract(
+        url = "https://github.com/reutermj/toolchains_cc.bzl/releases/download/binaries/libstdc++-dev-14.2.0-r6.tar.xz",
         output = "sysroot",
     )
 
