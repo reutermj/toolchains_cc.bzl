@@ -6,9 +6,11 @@ def _cxx_toolchain(rctx):
     if rctx.attr.vendor == "default" or rctx.attr.vendor == "ubuntu":
         extract_ubuntu(rctx)
         target_triple = "x86_64-unknown-linux-gnu"
+        vendor = "ubuntu"
     elif rctx.attr.vendor == "alpine":
         extract_alpine(rctx)
         target_triple = "x86_64-alpine-linux-musl"
+        vendor = "alpine"
     else:
         fail("(toolchains_cc.bzl bug) Unknown vendor: %s" % rctx.attr.vendor)
 
@@ -30,6 +32,7 @@ def _cxx_toolchain(rctx):
             "%{toolchain_name}": rctx.original_name,
             "%{cxx_std_lib}": cxx_std_lib,
             "%{target_triple}": target_triple,
+            "%{vendor}": vendor,
         },
     )
 

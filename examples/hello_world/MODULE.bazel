@@ -11,10 +11,30 @@ local_path_override(
 
 cxx_toolchain = use_repo_rule("@toolchains_cc.bzl", "cxx_toolchain")
 cxx_toolchain(
-    name = "llvm_toolchain",
+    name = "ubuntu_libcxx",
+    vendor = "ubuntu",
+    cxx_std_lib = "libc++",
+)
+cxx_toolchain(
+    name = "ubuntu_libstdcxx",
+    vendor = "ubuntu",
+    cxx_std_lib = "libstdc++",
+)
+cxx_toolchain(
+    name = "alpine_libcxx",
+    vendor = "alpine",
+    cxx_std_lib = "libc++",
+)
+cxx_toolchain(
+    name = "alpine_libstdcxx",
+    vendor = "alpine",
+    cxx_std_lib = "libstdc++",
 )
 
 register_toolchains(
-    "@llvm_toolchain",
+    "@ubuntu_libstdcxx",
+    "@alpine_libcxx",
+    "@alpine_libstdcxx",
+    "@ubuntu_libcxx",
     dev_dependency = True,
 )

@@ -25,6 +25,16 @@ subdirectory(
 
 toolchain(
     name = "%{toolchain_name}",
+    exec_compatible_with = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+        "@toolchains_cc.bzl//vendor:%{vendor}",
+        "@toolchains_cc.bzl//c++:%{cxx_std_lib}",
+        "@platforms//cpu:x86_64",
+    ],
     toolchain = ":host_cc_toolchain",
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type",
 )
