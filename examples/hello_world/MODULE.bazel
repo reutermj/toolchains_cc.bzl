@@ -9,32 +9,66 @@ local_path_override(
     path = "../..",
 )
 
-cxx_toolchain = use_repo_rule("@toolchains_cc.bzl", "cxx_toolchain")
-cxx_toolchain(
+# cxx_toolchain = use_repo_rule("@toolchains_cc.bzl", "cxx_toolchain")
+# cxx_toolchain(
+#     name = "ubuntu_libcxx",
+#     vendor = "ubuntu",
+#     cxx_std_lib = "libc++",
+# )
+# cxx_toolchain(
+#     name = "ubuntu_libstdcxx",
+#     vendor = "ubuntu",
+#     cxx_std_lib = "libstdc++",
+# )
+# cxx_toolchain(
+#     name = "alpine_libcxx",
+#     vendor = "alpine",
+#     cxx_std_lib = "libc++",
+# )
+# cxx_toolchain(
+#     name = "alpine_libstdcxx",
+#     vendor = "alpine",
+#     cxx_std_lib = "libstdc++",
+# )
+
+# register_toolchains(
+#     "@ubuntu_libstdcxx",
+#     "@alpine_libcxx",
+#     "@alpine_libstdcxx",
+#     "@ubuntu_libcxx",
+#     dev_dependency = True,
+# )
+
+cxx_toolchains = use_extension("@toolchains_cc.bzl", "cxx_toolchains")
+cxx_toolchains.declare(
     name = "ubuntu_libcxx",
     vendor = "ubuntu",
     cxx_std_lib = "libc++",
 )
-cxx_toolchain(
+cxx_toolchains.declare(
     name = "ubuntu_libstdcxx",
     vendor = "ubuntu",
     cxx_std_lib = "libstdc++",
 )
-cxx_toolchain(
+cxx_toolchains.declare(
     name = "alpine_libcxx",
     vendor = "alpine",
     cxx_std_lib = "libc++",
 )
-cxx_toolchain(
+cxx_toolchains.declare(
     name = "alpine_libstdcxx",
     vendor = "alpine",
     cxx_std_lib = "libstdc++",
 )
+use_repo(cxx_toolchains, "ubuntu_libcxx")
+use_repo(cxx_toolchains, "ubuntu_libstdcxx")
+use_repo(cxx_toolchains, "alpine_libcxx")
+use_repo(cxx_toolchains, "alpine_libstdcxx")
 
 register_toolchains(
-    "@ubuntu_libstdcxx",
-    "@alpine_libcxx",
     "@alpine_libstdcxx",
+    "@alpine_libcxx",
+    "@ubuntu_libstdcxx",
     "@ubuntu_libcxx",
     dev_dependency = True,
 )
