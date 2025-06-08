@@ -33,9 +33,31 @@ def _detect_host(rctx):
 def _lazy_download_bins_impl(rctx):
     """Lazily downloads only the toolchain binaries for the configured platform."""
 
+    if rctx.attr.cxx_std_lib == "default" or rctx.attr.cxx_std_lib == "libc++":
+        cxx_std_lib = "libc++"
+    elif rctx.attr.cxx_std_lib == "libstdc++":
+        cxx_std_lib = "libstdc++"
+    else:
+        fail("(toolchains_cc.bzl bug) Unknown C++ standard library: %s" % rctx.attr.cxx_std_lib)
+
     if rctx.attr.vendor == "detect":
         host_constants = _detect_host(rctx)
         vendor = host_constants["vendor"]
+
+        # buildifier: disable=print
+        print("""
+Using detected toolchain. Reproduce with:
+
+cc_toolchains.declare(
+    name = "{}",
+    vendor = "{}",
+    cxx_std_lib = "{}",
+)
+""".format(
+            rctx.original_name[:-5],
+            vendor,
+            cxx_std_lib,
+        ))
     else:
         vendor = rctx.attr.vendor
 
