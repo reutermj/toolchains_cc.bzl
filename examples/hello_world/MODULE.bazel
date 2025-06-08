@@ -60,10 +60,13 @@ cxx_toolchains.declare(
     vendor = "alpine",
     cxx_std_lib = "libstdc++",
 )
-use_repo(cxx_toolchains, "ubuntu_libcxx")
-use_repo(cxx_toolchains, "ubuntu_libstdcxx")
-use_repo(cxx_toolchains, "alpine_libcxx")
-use_repo(cxx_toolchains, "alpine_libstdcxx")
+use_repo(
+    cxx_toolchains,
+    "ubuntu_libcxx",
+    "ubuntu_libstdcxx",
+    "alpine_libcxx",
+    "alpine_libstdcxx",
+)
 
 register_toolchains(
     "@alpine_libstdcxx",

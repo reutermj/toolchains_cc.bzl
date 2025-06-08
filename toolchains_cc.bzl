@@ -1,7 +1,8 @@
 load("//impl:alpine.bzl", "extract_alpine")
 load("//impl:ubuntu.bzl", "extract_ubuntu")
 
-def _lazy_download_bins(rctx):
+def _lazy_download_bins_impl(rctx):
+    """Lazily downloads only the toolchain binaries for the configured platform."""
     if rctx.attr.vendor == "default" or rctx.attr.vendor == "ubuntu":
         extract_ubuntu(rctx)
     elif rctx.attr.vendor == "alpine":
@@ -18,8 +19,8 @@ def _lazy_download_bins(rctx):
         rctx.attr._build_tpl,
     )
 
-def _cxx_toolchain(rctx):
-    """Implementation for the llvm_toolchain repository rule."""
+def _eager_declare_toolchain_impl(rctx):
+    """Eagerly declare the toolchain(...) to determine which registered toolchain is valid for the current platform."""
     if rctx.attr.vendor == "default" or rctx.attr.vendor == "ubuntu":
         target_triple = "x86_64-unknown-linux-gnu"
         vendor = "ubuntu"
@@ -48,8 +49,8 @@ def _cxx_toolchain(rctx):
         },
     )
 
-lazy_download_bins = repository_rule(
-    implementation = _lazy_download_bins,
+_lazy_download_bins = repository_rule(
+    implementation = _lazy_download_bins_impl,
     attrs = {
         "vendor": attr.string(
             mandatory = False,
@@ -77,8 +78,8 @@ lazy_download_bins = repository_rule(
     },
 )
 
-cxx_toolchain = repository_rule(
-    implementation = _cxx_toolchain,
+_eager_declare_toolchain = repository_rule(
+    implementation = _eager_declare_toolchain_impl,
     attrs = {
         "vendor": attr.string(
             mandatory = False,
@@ -109,13 +110,23 @@ cxx_toolchain = repository_rule(
 def _cxx_toolchains(module_ctx):
     for mod in module_ctx.modules:
         for declared_toolchain in mod.tags.declare:
+            # we need to use a module extension + two repository rules
+            # to enable lazy downloading of the toolchain binaries
+            # when registering many toolchains.
+            # repository rules arent allowed to call other repository rules,
+            # so we have to wrap the two repository rules in a module extension.
+            # `_eager_declare_toolchain` declares the toolchain(...) which is eagerly evaluated
+            # for every registered toolchain. This allows bazel to determime
+            # which toolchain is valid for the current platform.
+            # `_lazy_download_bins` only downloads the binaries when the toolchain
+            # is actually used in a build.
             # more context: https://github.com/reutermj/toolchains_cc.bzl/issues/1
-            cxx_toolchain(
+            _eager_declare_toolchain(
                 name = declared_toolchain.name,
                 vendor = declared_toolchain.vendor,
                 cxx_std_lib = declared_toolchain.cxx_std_lib,
             )
-            lazy_download_bins(
+            _lazy_download_bins(
                 name = declared_toolchain.name + "_bins",
                 vendor = declared_toolchain.vendor,
                 cxx_std_lib = declared_toolchain.cxx_std_lib,
