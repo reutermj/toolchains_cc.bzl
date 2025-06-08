@@ -49,6 +49,38 @@ def _eager_declare_toolchain_impl(rctx):
         },
     )
 
+def _detect_host_platform_impl(rctx):
+    result = rctx.execute(["ldd", "--version"])
+
+    ldd_output = result.stdout.lower()
+    if ldd_output.find("glibc") != -1:
+        # target_libc = "glibc"
+        target_libc = "ubuntu"
+
+        # This assumes that the output of ldd for glibc based systems is formatted like:
+        # ldd (<distro> GLIBC <distro libc version>) <libc version>
+        libc_version = ldd_output.splitlines()[0].split(" ")[-1].strip()
+    elif ldd_output.find("musl") != -1:
+        # target_libc = "musl"
+        target_libc = "alpine"
+
+        # musl libc (<arch>)
+        # Version <libc version>
+        libc_version = ldd_output.splitlines()[1].split(" ")[-1].strip()
+    else:
+        fail("(toolchains_cc.bzl bug) Unknown libc: %s" % ldd_output)
+
+    rctx.file("BUILD")
+    rctx.file(
+        "platform_constants.bzl",
+        content = """TARGET_LIBC = "{}"
+LIBC_VERSION = "{}"
+""".format(
+            target_libc,
+            libc_version,
+        ),
+    )
+
 _lazy_download_bins = repository_rule(
     implementation = _lazy_download_bins_impl,
     attrs = {
@@ -105,6 +137,10 @@ _eager_declare_toolchain = repository_rule(
             default = "@toolchains_cc.bzl//:toolchain.BUILD.tpl",
         ),
     },
+)
+
+detect_host_platform = repository_rule(
+    implementation = _detect_host_platform_impl,
 )
 
 def _cxx_toolchains(module_ctx):
