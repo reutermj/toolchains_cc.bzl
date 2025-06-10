@@ -32,7 +32,6 @@ cxx_toolchains.declare(
 )
 use_repo(
     cxx_toolchains,
-    "detected",
     "ubuntu_libcxx",
     "ubuntu_libstdcxx",
     "alpine_libcxx",
@@ -40,7 +39,6 @@ use_repo(
 )
 
 register_toolchains(
-    "@detected",
     "@alpine_libstdcxx",
     "@alpine_libcxx",
     "@ubuntu_libstdcxx",

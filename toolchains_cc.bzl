@@ -190,6 +190,24 @@ detect_host_platform = repository_rule(
 def _cxx_toolchains(module_ctx):
     for mod in module_ctx.modules:
         for declared_toolchain in mod.tags.declare:
+            if declared_toolchain.vendor == "windows" and not declared_toolchain.accept_winsdk_license:
+                fail(
+                    """
+Please view the Microsoft Visual Studio License terms: https://go.microsoft.com/fwlink/?LinkId=2086102.
+Accept the license by setting `accept_winsdk_license = True` in your toolchain declaration:
+cc_toolchains.declare(
+    name = "{}",
+    vendor = "{}",
+    cxx_std_lib = "{}",
+    accept_winsdk_license = True,
+)
+""".format(
+                        declared_toolchain.name,
+                        declared_toolchain.vendor,
+                        declared_toolchain.cxx_std_lib,
+                    ),
+                )
+
             # we need to use a module extension + two repository rules
             # to enable lazy downloading of the toolchain binaries
             # when registering many toolchains.
@@ -217,6 +235,19 @@ cxx_toolchains = module_extension(
     tag_classes = {
         "declare": tag_class(
             attrs = {
+                "accept_winsdk_license": attr.bool(
+                    default = False,
+                ),
+                "cxx_std_lib": attr.string(
+                    mandatory = False,
+                    doc = "The c++ standard library to use.",
+                    values = [
+                        "default",
+                        "libc++",
+                        "libstdc++",
+                    ],
+                    default = "default",
+                ),
                 "name": attr.string(
                     mandatory = True,
                     doc = "The name of the toolchain, used for registration.",
@@ -230,16 +261,6 @@ cxx_toolchains = module_extension(
                         "alpine",
                     ],
                     default = "detect",
-                ),
-                "cxx_std_lib": attr.string(
-                    mandatory = False,
-                    doc = "The c++ standard library to use.",
-                    values = [
-                        "default",
-                        "libc++",
-                        "libstdc++",
-                    ],
-                    default = "default",
                 ),
             },
         ),
