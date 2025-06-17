@@ -3,13 +3,13 @@ module(name = "hello_world_test")
 bazel_dep(name = "rules_cc", version = "0.1.1")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.11")
-bazel_dep(name = "toolchains_cc.bzl")
+bazel_dep(name = "toolchains_cc")
 local_path_override(
-    module_name = "toolchains_cc.bzl",
+    module_name = "toolchains_cc",
     path = "../..",
 )
 
-cxx_toolchains = use_extension("@toolchains_cc.bzl", "cxx_toolchains")
+cxx_toolchains = use_extension("@toolchains_cc//:toolchains_cc.bzl", "cxx_toolchains")
 cxx_toolchains.declare(
     name = "ubuntu_libcxx",
     vendor = "ubuntu",

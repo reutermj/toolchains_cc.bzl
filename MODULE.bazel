@@ -1,11 +1,11 @@
 "Your one stop shop for hermetic c/c++ toolchains in Bazel!"
-module(name = "toolchains_cc.bzl")
+module(name = "toolchains_cc")
 
 bazel_dep(name = "rules_cc", version = "0.1.1")
 bazel_dep(name = "bazel_skylib", version = "1.7.1")
 bazel_dep(name = "platforms", version = "0.0.11")
 
-detect_host_platform = use_repo_rule("@toolchains_cc.bzl", "detect_host_platform")
+detect_host_platform = use_repo_rule("@toolchains_cc//impl:host_detect.bzl", "detect_host_platform")
 detect_host_platform(
     name = "toolchains_cc_host_platform_constants",
 )

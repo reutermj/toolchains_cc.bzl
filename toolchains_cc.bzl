@@ -1,34 +1,6 @@
 load("//impl:alpine.bzl", "extract_alpine")
+load("//impl:host_detect.bzl", "detect_host")
 load("//impl:ubuntu.bzl", "extract_ubuntu")
-
-def _detect_host(rctx):
-    result = rctx.execute(["ldd", "--version"])
-
-    ldd_output = result.stdout.lower()
-    if ldd_output.find("glibc") != -1:
-        # vendor = "glibc"
-        vendor = "ubuntu"
-        target_triple = "x86_64-unknown-linux-gnu"
-
-        # This assumes that the output of ldd for glibc based systems is formatted like:
-        # ldd (<distro> GLIBC <distro libc version>) <libc version>
-        libc_version = ldd_output.splitlines()[0].split(" ")[-1].strip()
-    elif ldd_output.find("musl") != -1:
-        # vendor = "musl"
-        vendor = "alpine"
-        target_triple = "x86_64-alpine-linux-musl"
-
-        # musl libc (<arch>)
-        # Version <libc version>
-        libc_version = ldd_output.splitlines()[1].split(" ")[-1].strip()
-    else:
-        fail("(toolchains_cc.bzl bug) Unknown libc: %s" % ldd_output)
-
-    return {
-        "vendor": vendor,
-        "libc_version": libc_version,
-        "target_triple": target_triple,
-    }
 
 def _lazy_download_bins_impl(rctx):
     """Lazily downloads only the toolchain binaries for the configured platform."""
@@ -41,7 +13,7 @@ def _lazy_download_bins_impl(rctx):
         fail("(toolchains_cc.bzl bug) Unknown C++ standard library: %s" % rctx.attr.cxx_std_lib)
 
     if rctx.attr.vendor == "detect":
-        host_constants = _detect_host(rctx)
+        host_constants = detect_host(rctx)
         vendor = host_constants["vendor"]
 
         # buildifier: disable=print
@@ -80,7 +52,7 @@ cc_toolchains.declare(
 def _eager_declare_toolchain_impl(rctx):
     """Eagerly declare the toolchain(...) to determine which registered toolchain is valid for the current platform."""
     if rctx.attr.vendor == "detect":
-        host_constants = _detect_host(rctx)
+        host_constants = detect_host(rctx)
         target_triple = host_constants["target_triple"]
         vendor = host_constants["vendor"]
     elif rctx.attr.vendor == "ubuntu":
@@ -111,20 +83,6 @@ def _eager_declare_toolchain_impl(rctx):
         },
     )
 
-def _detect_host_platform_impl(rctx):
-    host_constants = _detect_host(rctx)
-
-    rctx.file("BUILD")
-    rctx.file(
-        "platform_constants.bzl",
-        content = """VENDOR = "{}"
-LIBC_VERSION = "{}"
-""".format(
-            host_constants["vendor"],
-            host_constants["libc_version"],
-        ),
-    )
-
 _lazy_download_bins = repository_rule(
     implementation = _lazy_download_bins_impl,
     attrs = {
@@ -149,7 +107,7 @@ _lazy_download_bins = repository_rule(
             default = "default",
         ),
         "_build_tpl": attr.label(
-            default = "@toolchains_cc.bzl//:bins.BUILD.tpl",
+            default = "@toolchains_cc//:bins.BUILD.tpl",
         ),
     },
 )
@@ -178,13 +136,9 @@ _eager_declare_toolchain = repository_rule(
             default = "default",
         ),
         "_build_tpl": attr.label(
-            default = "@toolchains_cc.bzl//:toolchain.BUILD.tpl",
+            default = "@toolchains_cc//:toolchain.BUILD.tpl",
         ),
     },
-)
-
-detect_host_platform = repository_rule(
-    implementation = _detect_host_platform_impl,
 )
 
 def _cxx_toolchains(module_ctx):

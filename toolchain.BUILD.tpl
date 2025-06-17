@@ -11,8 +11,8 @@ toolchain(
     ],
     target_compatible_with = [
         "@platforms//os:linux",
-        "@toolchains_cc.bzl//vendor:%{vendor}",
-        "@toolchains_cc.bzl//c++:%{cxx_std_lib}",
+        "@toolchains_cc//vendor:%{vendor}",
+        "@toolchains_cc//c++:%{cxx_std_lib}",
         "@platforms//cpu:x86_64",
     ],
     toolchain = ":host_cc_toolchain",
